@@ -1,0 +1,2132 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IntroWorld - Interactive English Adventure (Grade 7)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Comic Neue for a friendly, readable look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        friendly: ['Comic Neue', 'cursive'],
+                    },
+                    colors: {
+                        brand: {
+                            lightBlue: '#E6FBF7',      /* Soft Mint/Teal tint */
+                            blue: '#0D9488',           /* Energetic Teal */
+                            darkBlue: '#0F766E',       /* Deep Teal */
+                            purple: '#F97316',         /* Warm Peach/Coral Orange */
+                            lightPurple: '#FFF3EB',    /* Soft Peach tint */
+                            pink: '#EAB308',           /* Golden Amber */
+                            pastelYellow: '#FEF08A',   /* Bright Pastel Yellow */
+                            pastelGreen: '#CCFBF1',    /* Light Mint Green */
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .pastel-gradient {
+            background: linear-gradient(135deg, #F0FDF4 0%, #FFF7ED 50%, #FFF1F2 100%); /* Mint Green, Peach, Rose */
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.1), 0 8px 10px -6px rgba(249, 115, 22, 0.1);
+        }
+        .avatar-selected {
+            border: 4px solid #F97316; /* Coral Orange border */
+            transform: scale(1.05);
+        }
+        /* Custom scrollbar matching Coral and Mint theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FFF3EB;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #F97316;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #EA580C;
+        }
+        
+        /* 3D Flashcard Animation Styles */
+        .flashcard-perspective {
+            perspective: 1000px;
+        }
+        .flashcard-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="pastel-gradient font-sans text-slate-800 min-h-screen flex flex-col selection:bg-orange-200">
+
+    <!-- Navigation Bar -->
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-orange-100 px-4 py-3 shadow-sm">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-brand-blue to-brand-purple p-2.5 rounded-2xl text-white shadow-md animate-bounce">
+                    <i class="fa-solid fa-comments text-xl"></i>
+                </div>
+                <div>
+                    <span class="font-friendly text-2xl font-bold bg-gradient-to-r from-brand-blue via-brand-purple to-brand-pink bg-clip-text text-transparent">IntroWorld!</span>
+                    <div>
+                        <span class="inline-block mt-0.5 px-3 py-1 text-[10px] font-extrabold text-white bg-gradient-to-r from-orange-500 to-brand-purple rounded-full uppercase tracking-widest shadow-sm">SMP Class VII Adventure</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Student Profile Summary Tracker -->
+            <div class="hidden md:flex items-center gap-4 bg-orange-50 px-4 py-1.5 rounded-full border border-orange-100">
+                <div class="flex items-center gap-2">
+                    <span id="nav-avatar-preview" class="text-2xl">👦</span>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Explorer Name</p>
+                        <p id="nav-student-name" class="text-sm font-bold text-slate-700">Guest Student</p>
+                    </div>
+                </div>
+                <div class="h-6 w-[1px] bg-orange-200"></div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">Exp Points</p>
+                    <p class="text-sm font-bold text-brand-purple"><i class="fa-solid fa-star text-amber-400 mr-1"></i><span id="total-exp">0</span> XP</p>
+                </div>
+            </div>
+
+            <!-- Mobile menu button -->
+            <div class="md:hidden">
+                <button onclick="toggleMobileMenu()" class="text-orange-600 hover:text-orange-800 focus:outline-none">
+                    <i id="menu-icon" class="fa-solid fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Dropdown Menu -->
+        <div id="mobile-menu" class="hidden md:hidden mt-3 bg-white border border-orange-100 rounded-2xl p-4 shadow-xl space-y-3">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span id="nav-avatar-mobile" class="text-2xl">👦</span>
+                    <span id="nav-name-mobile" class="font-bold text-slate-700">Guest Student</span>
+                </div>
+                <span class="text-sm font-bold text-brand-purple"><i class="fa-solid fa-star text-amber-400 mr-1"></i><span id="total-exp-mobile">0</span> XP</span>
+            </div>
+            <nav class="flex flex-col gap-2.5">
+                <button onclick="switchTab('dashboard')" class="text-left w-full py-2.5 px-4 rounded-xl font-bold flex items-center gap-3 text-white bg-gradient-to-r from-orange-500 to-amber-500 shadow-md transition-all"><i class="fa-solid fa-compass"></i> Adventure Hub</button>
+                <button onclick="switchTab('learn-ourselves')" class="text-left w-full py-2.5 px-4 rounded-xl font-bold flex items-center gap-3 text-white bg-gradient-to-r from-teal-500 to-emerald-600 shadow-md transition-all"><i class="fa-solid fa-user"></i> Intro Ourselves</button>
+                <button onclick="switchTab('learn-others')" class="text-left w-full py-2.5 px-4 rounded-xl font-bold flex items-center gap-3 text-white bg-gradient-to-r from-rose-500 to-orange-500 shadow-md transition-all"><i class="fa-solid fa-users"></i> Intro Others</button>
+                <button onclick="switchTab('role-play')" class="text-left w-full py-2.5 px-4 rounded-xl font-bold flex items-center gap-3 text-white bg-gradient-to-r from-violet-600 to-brand-purple shadow-md transition-all"><i class="fa-solid fa-face-laugh-beam"></i> Dialogue & Flashcards</button>
+                <button onclick="switchTab('game-center')" class="text-left w-full py-2.5 px-4 rounded-xl font-bold flex items-center gap-3 text-white bg-gradient-to-r from-sky-500 to-brand-blue shadow-md transition-all"><i class="fa-solid fa-gamepad"></i> Gamified Quest</button>
+                <button onclick="switchTab('literacy-zone')" class="text-left w-full py-2.5 px-4 rounded-xl font-bold flex items-center gap-3 text-white bg-gradient-to-r from-purple-600 to-pink-500 shadow-md transition-all"><i class="fa-solid fa-book-open"></i> Literacy Corner</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- App Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 md:py-8 flex flex-col md:flex-row gap-6">
+        
+        <!-- Sidebar Navigation (Desktop) -->
+        <aside class="hidden md:block w-64 shrink-0 space-y-4">
+            <div class="bg-white rounded-3xl p-5 border border-orange-100 shadow-sm sticky top-24">
+                <p class="text-xs font-bold text-orange-400 uppercase tracking-wider mb-4">Learning Trail</p>
+                <nav class="space-y-2.5">
+                    <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="w-full text-left px-4 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all duration-300 bg-gradient-to-r from-orange-500 to-amber-500 text-white border-2 border-amber-300 shadow-lg shadow-orange-200">
+                        <i class="fa-solid fa-compass text-lg"></i> Adventure Hub
+                    </button>
+                    <button id="tab-btn-learn-ourselves" onclick="switchTab('learn-ourselves')" class="w-full text-left px-4 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all duration-300 bg-gradient-to-r from-teal-500 to-emerald-600 text-white border-2 border-transparent opacity-65 saturate-75 scale-95 hover:opacity-100 hover:scale-100">
+                        <i class="fa-solid fa-user text-lg"></i> Intro Ourselves
+                    </button>
+                    <button id="tab-btn-learn-others" onclick="switchTab('learn-others')" class="w-full text-left px-4 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all duration-300 bg-gradient-to-r from-rose-500 to-orange-500 text-white border-2 border-transparent opacity-65 saturate-75 scale-95 hover:opacity-100 hover:scale-100">
+                        <i class="fa-solid fa-users text-lg"></i> Intro Others
+                    </button>
+                    <button id="tab-btn-role-play" onclick="switchTab('role-play')" class="w-full text-left px-4 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all duration-300 bg-gradient-to-r from-violet-600 to-brand-purple text-white border-2 border-transparent opacity-65 saturate-75 scale-95 hover:opacity-100 hover:scale-100">
+                        <i class="fa-solid fa-face-laugh-beam text-lg"></i> Dialogue Lab
+                    </button>
+                    <button id="tab-btn-game-center" onclick="switchTab('game-center')" class="w-full text-left px-4 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all duration-300 bg-gradient-to-r from-sky-500 to-brand-blue text-white border-2 border-transparent opacity-65 saturate-75 scale-95 hover:opacity-100 hover:scale-100">
+                        <i class="fa-solid fa-gamepad text-lg"></i> Gamified Quest
+                    </button>
+                    <button id="tab-btn-literacy-zone" onclick="switchTab('literacy-zone')" class="w-full text-left px-4 py-3.5 rounded-2xl font-bold flex items-center gap-3 transition-all duration-300 bg-gradient-to-r from-purple-600 to-pink-500 text-white border-2 border-transparent opacity-65 saturate-75 scale-95 hover:opacity-100 hover:scale-100">
+                        <i class="fa-solid fa-book-open text-lg"></i> Literacy Corner
+                    </button>
+                </nav>
+
+                <div class="mt-8 pt-6 border-t border-orange-100">
+                    <h4 class="text-sm font-bold text-slate-700 mb-2">My Learning Progress</h4>
+                    <div class="w-full bg-slate-100 rounded-full h-3.5 mb-2 overflow-hidden">
+                        <div id="sidebar-progress-bar" class="bg-gradient-to-r from-brand-blue to-brand-purple h-full rounded-full transition-all duration-500" style="width: 10%"></div>
+                    </div>
+                    <p class="text-xs font-semibold text-slate-500"><span id="sidebar-progress-text">10%</span> completed</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Dynamic Content Panel -->
+        <section class="flex-grow min-w-0">
+
+            <!-- TAB 1: DASHBOARD & WELCOME -->
+            <div id="tab-content-dashboard" class="tab-pane space-y-6">
+                <!-- Welcome Banner -->
+                <div class="bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl">
+                    <div class="absolute -right-10 -bottom-10 opacity-15 text-[200px] pointer-events-none font-bold">A+</div>
+                    <div class="max-w-xl space-y-3 relative z-10">
+                        <span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Welcome To Grade 7 English Adventure</span>
+                        <h2 class="font-friendly text-3xl md:text-4xl font-extrabold leading-tight">Mastering How to Introduce Yourself and Others!</h2>
+                        <p class="text-orange-50 text-sm md:text-base">Ready to make friends around the globe? Let's learn essential greetings, pronouns, and cultural patterns with interactive media and fun games.</p>
+                        <div class="pt-2 flex flex-wrap gap-3">
+                            <button onclick="switchTab('learn-ourselves')" class="bg-white text-brand-purple font-extrabold px-6 py-2.5 rounded-2xl shadow-lg shadow-orange-900/10 hover:scale-105 active:scale-95 transition-all text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-rocket"></i> Start Learning
+                            </button>
+                            <button onclick="switchTab('game-center')" class="bg-orange-600/30 hover:bg-orange-600/40 border border-orange-300/40 font-bold px-5 py-2.5 rounded-2xl transition-all text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-circle-play"></i> Play Quest Games
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Setup Student Account Widget -->
+                <div class="bg-gradient-to-br from-brand-purple via-orange-500 to-amber-500 text-white rounded-3xl p-6 border border-orange-300/30 shadow-xl space-y-4 relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 opacity-10 text-8xl pointer-events-none"><i class="fa-solid fa-palette"></i></div>
+                    <div class="flex items-center gap-3 relative z-10">
+                        <span class="text-3xl bg-white/20 p-2.5 rounded-2xl shadow-inner border border-white/10">🎨</span>
+                        <div>
+                            <h3 class="font-friendly text-xl font-bold text-white">Choose Your Learning Avatar & Name</h3>
+                            <p class="text-xs text-orange-100 font-medium">Personalize your character to unlock specific adventure tracks!</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-extrabold text-yellow-300 uppercase tracking-wider mb-2">Student Name / Nickname</label>
+                            <input id="student-name-input" type="text" placeholder="Enter your beautiful name here..." value="Guest Student" oninput="updateStudentName(this.value)" class="w-full px-4 py-3.5 rounded-2xl border border-white/20 bg-white/10 text-white placeholder-white/60 focus:outline-none focus:border-yellow-300 focus:ring-2 focus:ring-yellow-200 transition-all font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-extrabold text-yellow-300 uppercase tracking-wider mb-2">Choose Avatar</label>
+                            <div class="flex items-center gap-2 justify-between bg-white/10 p-1.5 rounded-2xl border border-white/15">
+                                <button onclick="selectAvatar('👦')" class="avatar-option p-2 text-2xl rounded-xl transition-all hover:bg-white/10 avatar-selected">👦</button>
+                                <button onclick="selectAvatar('👧')" class="avatar-option p-2 text-2xl rounded-xl transition-all hover:bg-white/10">👧</button>
+                                <button onclick="selectAvatar('🧑‍🚀')" class="avatar-option p-2 text-2xl rounded-xl transition-all hover:bg-white/10">🧑‍🚀</button>
+                                <button onclick="selectAvatar('🦊')" class="avatar-option p-2 text-2xl rounded-xl transition-all hover:bg-white/10">🦊</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Syllabus Cards Grid -->
+                <h3 class="font-friendly text-2xl font-bold text-slate-800 pt-2"><i class="fa-solid fa-map text-brand-purple mr-2"></i>What Will You Explore?</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Unit 1 Card -->
+                    <div class="bg-gradient-to-br from-teal-500 to-emerald-600 text-white rounded-3xl p-6 border border-teal-400/30 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all relative overflow-hidden group">
+                        <div class="absolute right-4 top-4 text-white/10 text-5xl group-hover:scale-110 transition-transform"><i class="fa-solid fa-id-card"></i></div>
+                        <div class="bg-white/20 text-yellow-300 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl mb-4 shadow-inner">U1</div>
+                        <h4 class="font-friendly font-bold text-xl text-yellow-300 mb-1">Introducing Ourselves</h4>
+                        <p class="text-xs text-teal-50 mb-4 font-medium leading-relaxed">Learn basic greetings, spelling your name, introducing your age, living place, and hobbies clearly.</p>
+                        <button onclick="switchTab('learn-ourselves')" class="text-xs font-extrabold text-white bg-white/15 hover:bg-white/25 px-4 py-2 rounded-xl flex items-center gap-2 w-max transition-all">Let's Dive In <i class="fa-solid fa-circle-arrow-right text-yellow-300 animate-pulse"></i></button>
+                    </div>
+
+                    <!-- Unit 2 Card -->
+                    <div class="bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-3xl p-6 border border-orange-400/30 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all relative overflow-hidden group">
+                        <div class="absolute right-4 top-4 text-white/10 text-5xl group-hover:scale-110 transition-transform"><i class="fa-solid fa-people-group"></i></div>
+                        <div class="bg-white/20 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl mb-4 shadow-inner">U2</div>
+                        <h4 class="font-friendly font-bold text-xl text-white mb-1">Introducing Others</h4>
+                        <p class="text-xs text-orange-50 mb-4 font-medium leading-relaxed">Introduce your classmate, your cool teacher, or siblings using correct third-person pronouns.</p>
+                        <button onclick="switchTab('learn-others')" class="text-xs font-extrabold text-white bg-white/15 hover:bg-white/25 px-4 py-2 rounded-xl flex items-center gap-2 w-max transition-all">Let's Dive In <i class="fa-solid fa-circle-arrow-right text-white animate-pulse"></i></button>
+                    </div>
+
+                    <!-- Unit 3 Card -->
+                    <div class="bg-gradient-to-br from-brand-purple via-orange-500 to-amber-500 text-white rounded-3xl p-6 border border-orange-300/30 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all relative overflow-hidden group">
+                        <div class="absolute right-4 top-4 text-white/10 text-5xl group-hover:scale-110 transition-transform"><i class="fa-solid fa-comments"></i></div>
+                        <div class="bg-white/20 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl mb-4 shadow-inner">U3</div>
+                        <h4 class="font-friendly font-bold text-xl text-white mb-1">Interactive Dialogue Lab</h4>
+                        <p class="text-xs text-orange-50 mb-4 font-medium leading-relaxed">Practice conversation flows and speaking flashcards to master phonetics & pronunciation.</p>
+                        <button onclick="switchTab('role-play')" class="text-xs font-extrabold text-white bg-white/15 hover:bg-white/25 px-4 py-2 rounded-xl flex items-center gap-2 w-max transition-all">Let's Dive In <i class="fa-solid fa-circle-arrow-right text-white animate-pulse"></i></button>
+                    </div>
+
+                    <!-- Unit 4 Card -->
+                    <div class="bg-gradient-to-br from-emerald-600 to-teal-800 text-white rounded-3xl p-6 border border-teal-500/30 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all relative overflow-hidden group">
+                        <div class="absolute right-4 top-4 text-white/10 text-5xl group-hover:scale-110 transition-transform"><i class="fa-solid fa-dice"></i></div>
+                        <div class="bg-white/20 text-yellow-300 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl mb-4 shadow-inner">U4</div>
+                        <h4 class="font-friendly font-bold text-xl text-yellow-300 mb-1">Gamified Quests Zone</h4>
+                        <p class="text-xs text-teal-50 mb-4 font-medium leading-relaxed">Challenge your brain with listening, jumbled sentences, word finders, and HOTS questions.</p>
+                        <button onclick="switchTab('game-center')" class="text-xs font-extrabold text-white bg-white/15 hover:bg-white/25 px-4 py-2 rounded-xl flex items-center gap-2 w-max transition-all">Let's Play Game <i class="fa-solid fa-circle-arrow-right text-yellow-300 animate-pulse"></i></button>
+                    </div>
+
+                    <!-- Unit 5 Card -->
+                    <div class="bg-gradient-to-br from-brand-purple via-rose-500 to-orange-500 text-white rounded-3xl p-6 border border-rose-400/30 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all relative overflow-hidden group md:col-span-2">
+                        <div class="absolute right-4 top-4 text-white/10 text-5xl group-hover:scale-110 transition-transform"><i class="fa-solid fa-book-open"></i></div>
+                        <div class="bg-white/20 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl mb-4 shadow-inner">U5</div>
+                        <h4 class="font-friendly font-bold text-xl text-white mb-1">Literacy Corner: Reading & Writing Quest</h4>
+                        <p class="text-xs text-orange-50 mb-4 font-medium leading-relaxed">Engage with fun reading adventures and write legendary hero stories to level up your English skills.</p>
+                        <button onclick="switchTab('literacy-zone')" class="text-xs font-extrabold text-white bg-white/15 hover:bg-white/25 px-4 py-2 rounded-xl flex items-center gap-2 w-max transition-all">Start Quest <i class="fa-solid fa-circle-arrow-right text-white animate-pulse"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: INTRODUCING OURSELVES -->
+            <div id="tab-content-learn-ourselves" class="tab-pane hidden space-y-6">
+                <!-- Section Header -->
+                <div class="bg-gradient-to-r from-teal-600 via-teal-700 to-emerald-700 rounded-3xl p-6 border border-teal-500 shadow-lg text-white">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <span class="p-3 bg-white/20 text-yellow-300 rounded-2xl font-extrabold text-2xl shadow-inner">U1</span>
+                            <div>
+                                <h2 class="font-friendly text-2xl font-bold">Unit 1: Introducing Ourselves</h2>
+                                <p class="text-xs text-teal-100 font-medium">Learn how to boldly introduce yourself to new classmates!</p>
+                            </div>
+                        </div>
+                        <button onclick="playSpeech('Welcome to Unit 1! Let\'s learn how to tell people who we are. Listen and speak along.')" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-extrabold py-2.5 px-5 rounded-2xl text-xs flex items-center gap-2 shadow-lg hover:scale-105 transition-all active:scale-95">
+                            <i class="fa-solid fa-volume-high animate-pulse"></i> Listen Unit Intro
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sub-materials: Theory & Formulas with Full Cover Gradients -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Theory Card 1: Greeting & Name (Full Cover Gradient) -->
+                    <div class="bg-gradient-to-br from-teal-600 to-teal-800 text-white rounded-3xl p-6 border border-teal-500 shadow-xl space-y-4">
+                        <h3 class="font-friendly text-xl font-bold text-yellow-300 border-b pb-2 border-teal-400/40 flex items-center gap-2">
+                            <i class="fa-solid fa-address-card"></i> 1. Greetings & Your Name
+                        </h3>
+                        <p class="text-sm text-teal-50 leading-relaxed font-medium">To start an introduction, always use a <strong class="text-white underline decoration-yellow-400">Greeting</strong> first. Here are some excellent options:</p>
+                        
+                        <div class="space-y-2">
+                            <div class="bg-white/10 p-3 rounded-xl border border-white/15 flex items-center justify-between hover:bg-white/15 transition-all">
+                                <span class="text-sm font-bold text-white">"Hello everyone!" (Friendly)</span>
+                                <button onclick="playSpeech('Hello everyone!')" class="text-yellow-300 hover:text-white bg-white/10 p-2 rounded-lg transition-all"><i class="fa-solid fa-circle-play text-base"></i></button>
+                            </div>
+                            <div class="bg-white/10 p-3 rounded-xl border border-white/15 flex items-center justify-between hover:bg-white/15 transition-all">
+                                <span class="text-sm font-bold text-white">"Good morning! Let me introduce myself."</span>
+                                <button onclick="playSpeech('Good morning! Let me introduce myself.')" class="text-yellow-300 hover:text-white bg-white/10 p-2 rounded-lg transition-all"><i class="fa-solid fa-circle-play text-base"></i></button>
+                            </div>
+                        </div>
+
+                        <p class="text-sm text-teal-50 leading-relaxed font-medium">To express your identity, formulate your sentences using these structures:</p>
+                        <div class="bg-slate-950/40 p-4 rounded-xl border border-white/10 space-y-1.5">
+                            <code class="block text-sm font-mono text-yellow-300 font-extrabold">&bull; My name is [Your Name]</code>
+                            <code class="block text-sm font-mono text-yellow-300 font-extrabold">&bull; I am [Your Name]</code>
+                            <p class="text-xs text-teal-200 mt-2 italic font-medium">Example: "My name is Bagas." or "I am Bagas."</p>
+                        </div>
+                    </div>
+
+                    <!-- Theory Card 2: Age, Origin & Hobby (Full Cover Gradient) -->
+                    <div class="bg-gradient-to-br from-brand-purple via-orange-500 to-amber-500 text-white rounded-3xl p-6 border border-orange-400 shadow-xl space-y-4">
+                        <h3 class="font-friendly text-xl font-bold text-white border-b pb-2 border-white/20 flex items-center gap-2">
+                            <i class="fa-solid fa-compass"></i> 2. Origin, Age & Hobbies
+                        </h3>
+                        <p class="text-sm text-orange-50 leading-relaxed font-medium">Tell your friends where you come from and what you enjoy doing in your free time!</p>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <span class="block text-[10px] font-extrabold uppercase text-amber-200 tracking-wider">Origin & Living Place:</span>
+                                <div class="bg-white/10 p-3 rounded-xl border border-white/15 flex items-center justify-between mt-1 hover:bg-white/15 transition-all">
+                                    <span class="text-sm font-bold text-white">"I live in Yogyakarta." or "I am from Depok."</span>
+                                    <button onclick="playSpeech('I live in Yogyakarta. I am from Depok.')" class="text-amber-200 hover:text-white bg-white/10 p-2 rounded-lg transition-all"><i class="fa-solid fa-circle-play text-base"></i></button>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-extrabold uppercase text-amber-200 tracking-wider">Age representation:</span>
+                                <div class="bg-white/10 p-3 rounded-xl border border-white/15 flex items-center justify-between mt-1 hover:bg-white/15 transition-all">
+                                    <span class="text-sm font-bold text-white">"I am 13 years old."</span>
+                                    <button onclick="playSpeech('I am thirteen years old.')" class="text-amber-200 hover:text-white bg-white/10 p-2 rounded-lg transition-all"><i class="fa-solid fa-circle-play text-base"></i></button>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-extrabold uppercase text-amber-200 tracking-wider">Hobbies & Activities:</span>
+                                <div class="bg-white/10 p-3 rounded-xl border border-white/15 flex items-center justify-between mt-1 hover:bg-white/15 transition-all">
+                                    <span class="text-sm font-bold text-white">"My hobby is reading." or "I like cycling."</span>
+                                    <button onclick="playSpeech('My hobby is reading. I like cycling.')" class="text-amber-200 hover:text-white bg-white/10 p-2 rounded-lg transition-all"><i class="fa-solid fa-circle-play text-base"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Dialogue Showcase (Full Cover Gradient) -->
+                <div class="bg-gradient-to-br from-teal-700 via-teal-800 to-teal-950 text-white rounded-3xl p-6 border border-teal-600 shadow-xl space-y-4">
+                    <h3 class="font-friendly text-2xl font-bold text-yellow-300 flex items-center gap-2">
+                        <i class="fa-solid fa-message"></i> Interactive Example Dialogue
+                    </h3>
+                    <p class="text-sm text-teal-100 font-medium">Read this conversation between <strong>Arka</strong> and <strong>Zahra</strong> on their first day of junior high school. Click the button to hear them speak!</p>
+
+                    <!-- Comic Dialogue Bubbles -->
+                    <div class="space-y-4 max-w-2xl mx-auto pt-2">
+                        <!-- Arka Speech -->
+                        <div class="flex gap-3 items-start">
+                            <span class="text-3xl bg-teal-800/60 p-2.5 rounded-2xl shadow-inner border border-teal-600">👦</span>
+                            <div class="bg-white/10 border border-white/15 p-4 rounded-3xl rounded-tl-none flex-grow relative text-white">
+                                <span class="font-extrabold text-yellow-300 text-xs block mb-1">Arka (Grade 7 Explorer)</span>
+                                <p class="text-sm font-semibold">"Hi! I am Arka. I am twelve years old. I live in Depok and my hobby is playing football. What is your name?"</p>
+                                <button onclick="playSpeech('Hi! I am Arka. I am twelve years old. I live in Depok and my hobby is playing football. What is your name?')" class="absolute top-2 right-2 text-white bg-white/10 hover:bg-white/20 hover:text-yellow-300 p-1.5 rounded-lg transition-all"><i class="fa-solid fa-volume-high text-xs"></i></button>
+                            </div>
+                        </div>
+                        <!-- Zahra Speech -->
+                        <div class="flex gap-3 items-start justify-end flex-row-reverse">
+                            <span class="text-3xl bg-orange-800/60 p-2.5 rounded-2xl shadow-inner border border-orange-600">👧</span>
+                            <div class="bg-white/10 border border-white/15 p-4 rounded-3xl rounded-tr-none flex-grow relative text-right text-white">
+                                <span class="font-extrabold text-orange-300 text-xs block mb-1">Zahra (Grade 7 Learner)</span>
+                                <p class="text-sm font-semibold">"Hello, Arka! Nice to meet you. My name is Zahra. I am thirteen years old. I love drawing and reading mystery novels."</p>
+                                <button onclick="playSpeech('Hello, Arka! Nice to meet you. My name is Zahra. I am thirteen years old. I love drawing and reading mystery novels.')" class="absolute top-2 left-2 text-white bg-white/10 hover:bg-white/20 hover:text-orange-300 p-1.5 rounded-lg transition-all"><i class="fa-solid fa-volume-high text-xs"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sandbox practice -->
+                <div class="bg-gradient-to-tr from-brand-lightBlue to-brand-lightPurple rounded-3xl p-6 border border-orange-200 shadow-sm space-y-4">
+                    <h3 class="font-friendly text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-brand-purple"></i> Instant Self-Introduction Maker!
+                    </h3>
+                    <p class="text-sm text-slate-600">Type your facts below to generate a perfect paragraph, then click the speaker to hear yourself!</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">My Nickname</label>
+                            <input id="intro-name" type="text" value="Rian" class="w-full px-3 py-2 rounded-xl border border-orange-200 focus:outline-none" oninput="generateIntroDraft()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">My Age</label>
+                            <input id="intro-age" type="number" value="13" class="w-full px-3 py-2 rounded-xl border border-orange-200 focus:outline-none" oninput="generateIntroDraft()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">My City</label>
+                            <input id="intro-city" type="text" value="Jakarta" class="w-full px-3 py-2 rounded-xl border border-orange-200 focus:outline-none" oninput="generateIntroDraft()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">My Hobby</label>
+                            <input id="intro-hobby" type="text" value="playing video games" class="w-full px-3 py-2 rounded-xl border border-orange-200 focus:outline-none" oninput="generateIntroDraft()">
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-orange-100 flex items-center justify-between">
+                        <div>
+                            <span class="block text-xs font-bold text-orange-400 uppercase tracking-wide">Your Smart Intro:</span>
+                            <p id="generated-intro-text" class="text-sm font-bold text-slate-700 mt-1 italic">"Hello everyone! My name is Rian. I am 13 years old. I live in Jakarta. My hobby is playing video games. Nice to meet you!"</p>
+                        </div>
+                        <button onclick="playSpeech(document.getElementById('generated-intro-text').innerText)" class="bg-brand-purple hover:bg-orange-600 text-white p-3 rounded-full shadow-md"><i class="fa-solid fa-volume-high"></i></button>
+                    </div>
+                </div>
+
+                <!-- Navigation buttons -->
+                <div class="flex justify-between items-center">
+                    <button onclick="switchTab('dashboard')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-6 rounded-2xl transition-all">Back to Home</button>
+                    <button onclick="switchTab('learn-others'); completeLessonStep(20);" class="bg-brand-purple hover:bg-orange-600 text-white font-bold py-2.5 px-6 rounded-2xl shadow-md transition-all">Next Unit: Introducing Others <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                </div>
+            </div>
+
+            <!-- TAB 3: INTRODUCING OTHERS -->
+            <div id="tab-content-learn-others" class="tab-pane hidden space-y-6">
+                <!-- Section Header -->
+                <div class="bg-gradient-to-r from-orange-500 via-brand-purple to-amber-500 rounded-3xl p-6 border border-orange-400 shadow-lg text-white">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <span class="p-3 bg-white/20 text-yellow-300 rounded-2xl font-extrabold text-2xl shadow-inner">U2</span>
+                            <div>
+                                <h2 class="font-friendly text-2xl font-bold">Unit 2: Introducing Others</h2>
+                                <p class="text-xs text-orange-100 font-medium">Learn how to introduce your classmates, friends, and family!</p>
+                            </div>
+                        </div>
+                        <button onclick="playSpeech('Unit Two. Introducing Others. Let\'s study third-person pronouns like he, she, and they.')" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-extrabold py-2.5 px-5 rounded-2xl text-xs flex items-center gap-2 shadow-lg hover:scale-105 transition-all active:scale-95">
+                            <i class="fa-solid fa-volume-high animate-pulse"></i> Listen Unit Intro
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grammar Rule Block (HOTS focus: Pronoun Analysis) -->
+                <div class="bg-gradient-to-br from-teal-600 via-teal-700 to-emerald-800 text-white rounded-3xl p-6 border border-teal-500 shadow-xl space-y-4">
+                    <h3 class="font-friendly text-xl font-bold text-yellow-300 border-b pb-2 border-teal-400/40 flex items-center gap-2">
+                        <i class="fa-solid fa-book-open"></i> Grammar Focus: Subject & Possessive Pronouns
+                    </h3>
+                    <p class="text-sm text-teal-50 leading-relaxed font-medium">To talk about other people, we must choose the correct pronoun based on their gender. Analysis of pronouns is key to polite speech!</p>
+                    
+                    <div class="overflow-x-auto rounded-2xl border border-white/20 bg-slate-950/20">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-white/10 text-yellow-300 font-bold">
+                                <tr>
+                                    <th class="p-3 border-b border-white/10">Target Person</th>
+                                    <th class="p-3 border-b border-white/10">Subject Pronoun</th>
+                                    <th class="p-3 border-b border-white/10">Possessive Pronoun</th>
+                                    <th class="p-3 border-b border-white/10">Introduction Example</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5 text-teal-100">
+                                <tr>
+                                    <td class="p-3 font-bold text-white">A Boy / Man (Male)</td>
+                                    <td class="p-3"><span class="bg-yellow-400 text-slate-900 px-2.5 py-1 rounded-md font-bold">He</span></td>
+                                    <td class="p-3"><span class="bg-yellow-400/80 text-slate-900 px-2.5 py-1 rounded-md font-bold">His</span></td>
+                                    <td class="p-3 text-teal-50">"This is Arka. <strong class="text-white underline">He</strong> lives in Depok. <strong class="text-white underline">His</strong> hobby is gaming."</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold text-white">A Girl / Woman (Female)</td>
+                                    <td class="p-3"><span class="bg-orange-400 text-white px-2.5 py-1 rounded-md font-bold">She</span></td>
+                                    <td class="p-3"><span class="bg-orange-400/80 text-white px-2.5 py-1 rounded-md font-bold">Her</span></td>
+                                    <td class="p-3 text-teal-50">"This is Zahra. <strong class="text-white underline">She</strong> is 13. <strong class="text-white underline">Her</strong> favorite book is Harry Potter."</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold text-white">More than one person (Plural)</td>
+                                    <td class="p-3"><span class="bg-amber-400 text-slate-900 px-2.5 py-1 rounded-md font-bold">They</span></td>
+                                    <td class="p-3"><span class="bg-amber-400/80 text-slate-900 px-2.5 py-1 rounded-md font-bold">Their</span></td>
+                                    <td class="p-3 text-teal-50">"These are my friends. <strong class="text-white underline">They</strong> are twins. <strong class="text-white underline">Their</strong> hobby is swimming."</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Example Dialogue Showcase -->
+                <div class="bg-gradient-to-br from-amber-500 via-orange-500 to-brand-purple text-white rounded-3xl p-6 border border-orange-400 shadow-xl space-y-4">
+                    <h3 class="font-friendly text-xl font-bold text-white border-b pb-2 border-white/20 flex items-center gap-2">
+                        <i class="fa-solid fa-people-arrows"></i> Introducing Others in Action
+                    </h3>
+                    <p class="text-sm text-orange-50 font-medium">Look at how <strong class="text-white">Mr. Doni</strong> (the English teacher) introduces a new transfer student, <strong class="text-white">Siti</strong>, to the grade 7 class!</p>
+
+                    <!-- Story illustration dialog style -->
+                    <div class="bg-slate-950/20 p-6 rounded-3xl border border-white/10 space-y-4 max-w-2xl mx-auto">
+                        <div class="flex gap-3 items-start">
+                            <span class="text-3xl bg-white/20 p-2.5 rounded-2xl shadow-inner border border-white/10">👨‍🏫</span>
+                            <div class="bg-white/10 border border-white/15 p-4 rounded-3xl rounded-tl-none flex-grow relative text-white">
+                                <span class="font-extrabold text-yellow-300 text-xs block mb-1">Mr. Doni (The Teacher)</span>
+                                <p class="text-sm font-semibold italic">"Good morning, class! Let me introduce our new student. Her name is Siti. She is from Padang. She enjoys playing guitar. Please welcome her!"</p>
+                                <button onclick="playSpeech('Good morning, class! Let me introduce our new student. Her name is Siti. She is from Padang. She enjoys playing guitar. Please welcome her!')" class="absolute top-2 right-2 text-white bg-white/10 hover:bg-white/20 hover:text-yellow-300 p-1.5 rounded-lg transition-all"><i class="fa-solid fa-volume-high text-xs"></i></button>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 items-start justify-end flex-row-reverse">
+                            <span class="text-3xl bg-white/20 p-2.5 rounded-2xl shadow-inner border border-white/10">👩‍🎓</span>
+                            <div class="bg-white/10 border border-white/15 p-4 rounded-3xl rounded-tr-none flex-grow relative text-right text-white">
+                                <span class="font-extrabold text-orange-300 text-xs block mb-1">Siti (New Classmate)</span>
+                                <p class="text-sm font-semibold italic">"Thank you, Mr. Doni. Hi, everyone! Nice to meet you. I hope we can be good friends and study together."</p>
+                                <button onclick="playSpeech('Thank you, Mr. Doni. Hi, everyone! Nice to meet you. I hope we can be good friends and study together.')" class="absolute top-2 left-2 text-white bg-white/10 hover:bg-white/20 hover:text-orange-300 p-1.5 rounded-lg transition-all"><i class="fa-solid fa-volume-high text-xs"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Friend Card Builder -->
+                <div class="bg-gradient-to-tr from-brand-purple via-orange-600 to-amber-500 text-white rounded-3xl p-6 border border-orange-400 shadow-xl space-y-4">
+                    <h3 class="font-friendly text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-id-badge"></i> Friend Profile Synthesizer!
+                    </h3>
+                    <p class="text-sm text-orange-50 font-medium">Enter details of your best friend below. The app will correctly match his/her gender and compile an intro paragraph!</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-orange-200 mb-1">Best Friend's Name</label>
+                            <input id="friend-name" type="text" value="Kevin" class="w-full px-3 py-2 rounded-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-orange-200 font-bold bg-white/15 text-white placeholder-white/50" oninput="generateFriendIntro()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-orange-200 mb-1">Gender</label>
+                            <select id="friend-gender" class="w-full px-3 py-2 rounded-xl border border-white/20 focus:outline-none bg-orange-800 text-white font-bold" onchange="generateFriendIntro()">
+                                <option class="text-slate-800 bg-white" value="male">Boy (He/His)</option>
+                                <option class="text-slate-800 bg-white" value="female">Girl (She/Her)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-orange-200 mb-1">Origin City</label>
+                            <input id="friend-city" type="text" value="Bandung" class="w-full px-3 py-2 rounded-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-orange-200 font-bold bg-white/15 text-white placeholder-white/50" oninput="generateFriendIntro()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-orange-200 mb-1">Hobby</label>
+                            <input id="friend-hobby" type="text" value="swimming" class="w-full px-3 py-2 rounded-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-orange-200 font-bold bg-white/15 text-white placeholder-white/50" oninput="generateFriendIntro()">
+                        </div>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/15 flex items-center justify-between">
+                        <div>
+                            <span class="block text-xs font-bold text-yellow-300 uppercase tracking-wide">Synthesized Friend Introduction:</span>
+                            <p id="generated-friend-text" class="text-sm font-bold text-white mt-1 italic">"Meet my best friend. His name is Kevin. He is from Bandung. His favorite hobby is swimming."</p>
+                        </div>
+                        <button onclick="playSpeech(document.getElementById('generated-friend-text').innerText)" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 p-3 rounded-full shadow-md hover:scale-105 transition-all"><i class="fa-solid fa-volume-high"></i></button>
+                    </div>
+                </div>
+
+                <!-- Navigation buttons -->
+                <div class="flex justify-between items-center">
+                    <button onclick="switchTab('learn-ourselves')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-6 rounded-2xl transition-all"><i class="fa-solid fa-arrow-left mr-1"></i> Back</button>
+                    <button onclick="switchTab('role-play'); completeLessonStep(40);" class="bg-brand-pink hover:bg-amber-600 text-white font-bold py-2.5 px-6 rounded-2xl shadow-md transition-all">Next: Dialogue & Flashcards <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                </div>
+            </div>
+
+            <!-- TAB 4: INTERACTIVE DIALOGUE / ROLE PLAY -->
+            <div id="tab-content-role-play" class="tab-pane hidden space-y-6">
+                <!-- Section Header -->
+                <div class="bg-gradient-to-r from-brand-purple via-orange-500 to-amber-500 rounded-3xl p-6 border border-orange-400 shadow-lg text-white">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <span class="p-3 bg-white/20 text-yellow-300 rounded-2xl font-extrabold text-2xl shadow-inner">U3</span>
+                            <div>
+                                <h2 class="font-friendly text-2xl font-bold">Unit 3: Interactive Dialogue Lab</h2>
+                                <p class="text-xs text-orange-100 font-medium">Practice dialogue flow, check appropriate social cues, and test pronunciation!</p>
+                            </div>
+                        </div>
+                        <button onclick="playSpeech('Unit Three. Interactive Dialogue Lab. Let\'s practice speaking and analyzing formal versus informal contexts!')" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-extrabold py-2.5 px-5 rounded-2xl text-xs flex items-center gap-2 shadow-lg hover:scale-105 transition-all active:scale-95">
+                            <i class="fa-solid fa-volume-high animate-pulse"></i> Listen Unit Intro
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SPEAKING FLASHCARDS SECTION -->
+                <div class="bg-gradient-to-br from-teal-500 to-emerald-600 text-white rounded-3xl p-6 border border-emerald-400 shadow-lg space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-white/20 p-2 rounded-xl text-xl"><i class="fa-solid fa-bolt"></i></span>
+                        <div>
+                            <h3 class="font-friendly text-xl font-bold">Interactive Speaking Flashcards</h3>
+                            <p class="text-xs text-teal-100">Click a card to flip it! Practice speaking the target sentences out loud to train your English fluency.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <!-- Flashcard widget wrapper -->
+                        <div id="flashcard-deck" class="w-full max-w-md h-64 flashcard-perspective cursor-pointer">
+                            <div id="flashcard-inner" class="flashcard-inner w-full h-full relative" onclick="toggleFlashcardFlip()">
+                                
+                                <!-- Card Front -->
+                                <div id="flashcard-front" class="flashcard-front absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 p-6 flex flex-col justify-between text-white shadow-xl border-2 border-amber-300">
+                                    <div class="flex justify-between items-center">
+                                        <span class="bg-white/20 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-extrabold" id="flashcard-category">GREETING HELPER</span>
+                                        <span class="text-xs font-bold">Card <span id="flashcard-num">1</span> of 4</span>
+                                    </div>
+                                    <div class="text-center space-y-2">
+                                        <h4 class="text-2xl font-friendly font-bold" id="flashcard-title">Saying Hello!</h4>
+                                        <p class="text-sm text-orange-50 italic">How do we politely start a conversation in Grade 7?</p>
+                                    </div>
+                                    <div class="text-center text-xs font-bold text-amber-100 flex items-center justify-center gap-1">
+                                        <span>Click to Flip Card</span>
+                                        <i class="fa-solid fa-rotate"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Card Back -->
+                                <div id="flashcard-back" class="flashcard-back absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br from-brand-blue to-teal-800 p-6 flex flex-col justify-between text-white shadow-xl border-2 border-teal-500">
+                                    <div class="flex justify-between items-center">
+                                        <span class="bg-white/20 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-extrabold">PRONUNCIATION & SPEAKING TASK</span>
+                                        <span class="text-xs font-bold">Try Speaking Out Loud!</span>
+                                    </div>
+                                    <div class="text-center space-y-3">
+                                        <p class="text-base font-bold italic text-teal-100">"Good morning everyone! Let me introduce myself."</p>
+                                        <p class="text-xs text-yellow-300 font-mono tracking-wide" id="flashcard-phonetic">/ɡʊd ˈmɔːnɪŋ ˈɛvrɪwʌn! lɛt miː ˌɪntrəˈdjuːs maɪˈsɛlf./</p>
+                                        <button onclick="playFlashcardAudio(event)" class="mx-auto bg-white text-teal-700 hover:bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-90">
+                                            <i class="fa-solid fa-volume-high"></i>
+                                        </button>
+                                    </div>
+                                    <div class="text-center text-xs text-teal-200">
+                                        Click to Flip back to front
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Card Deck controls -->
+                        <div class="flex items-center gap-4">
+                            <button onclick="navigateFlashcard(-1)" class="bg-white/20 hover:bg-white/30 text-white font-extrabold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1">
+                                <i class="fa-solid fa-chevron-left"></i> Previous
+                            </button>
+                            <button onclick="navigateFlashcard(1)" class="bg-white text-emerald-800 font-extrabold py-2 px-5 rounded-xl text-xs shadow-md transition-all hover:scale-105 flex items-center gap-1">
+                                Next Card <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Concept Note: Analytical Social Distance -->
+                <div class="bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-3xl p-6 border border-orange-400 shadow-lg space-y-3">
+                    <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-magnifying-glass"></i> Social Context Analysis: Formal vs Informal</h3>
+                    <p class="text-sm text-orange-50">Analytical thinking requires knowing **when** to use a specific expression. Introducing yourself to a **teacher** is different from introducing yourself to a **classmate**!</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <div class="bg-white/15 backdrop-blur-md p-4 rounded-2xl border border-white/20 space-y-2">
+                            <h4 class="font-bold text-yellow-200 text-sm uppercase tracking-wider">Formal Context (e.g., Teachers, Headmaster)</h4>
+                            <p class="text-xs text-orange-50">Use elegant and high-respect expressions:</p>
+                            <ul class="text-xs list-disc pl-4 text-white space-y-1 font-semibold">
+                                <li>"Good morning, Sir/Ma'am."</li>
+                                <li>"Allow me to introduce myself, my name is..."</li>
+                                <li>"It is an honor to meet you."</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white/15 backdrop-blur-md p-4 rounded-2xl border border-white/20 space-y-2">
+                            <h4 class="font-bold text-teal-200 text-sm uppercase tracking-wider font-friendly">Informal Context (e.g., Peers, Friends)</h4>
+                            <p class="text-xs text-orange-50">Use warm, casual, and energetic greetings:</p>
+                            <ul class="text-xs list-disc pl-4 text-white space-y-1 font-semibold">
+                                <li>"Hi guys!", "What's up, everyone?"</li>
+                                <li>"I'm Bagas. You can call me Bagas."</li>
+                                <li>"Nice to meet you all!"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Interaction: Roleplay Fill-In Simulator -->
+                <div class="bg-gradient-to-br from-teal-600 via-teal-700 to-teal-800 text-white rounded-3xl p-6 border border-teal-500 shadow-lg space-y-4">
+                    <h3 class="font-friendly text-xl font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-theater-masks"></i> Interactive Dialogue Sandbox
+                    </h3>
+                    <p class="text-sm text-teal-100">Drag/Select the correct analytical option to complete this dialogue correctly. Match the correct politeness level!</p>
+
+                    <div class="p-5 bg-white/10 rounded-2xl border border-white/20 space-y-4">
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl bg-white/20 p-1.5 rounded-xl">👩‍🏫</span>
+                            <div>
+                                <span class="font-bold text-yellow-300 text-xs block">Mrs. Linda (English Teacher)</span>
+                                <p class="text-sm text-teal-50 italic">"Welcome to Class 7-A, children. Who wants to be the first to introduce themselves to the front?"</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3 pl-8">
+                            <span class="text-2xl bg-white/20 p-1.5 rounded-xl">👦</span>
+                            <div class="bg-white/15 p-4 rounded-2xl border border-white/25 flex-grow">
+                                <span class="font-bold text-orange-300 text-xs block">You (Student)</span>
+                                <p class="text-sm text-white font-semibold italic">
+                                    "<span id="roleplay-select-placeholder" class="bg-yellow-300 text-slate-900 font-bold px-2.5 py-1 rounded inline-block border-2 border-dashed border-yellow-500 cursor-pointer">Select response...</span>, my name is Arka. I want to tell you about my hobby. I like coding."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sandbox Choices Grid -->
+                    <div class="flex flex-wrap gap-2 justify-center pt-2">
+                        <button onclick="selectSandboxOption('Hey there, Linda! What\'s up?', false)" class="bg-white/20 hover:bg-white/30 text-white border border-white/30 font-bold py-2.5 px-4 rounded-xl text-xs transition-all flex items-center gap-1">
+                            ❌ "Hey there, Linda! What's up?" <span class="text-yellow-200 font-normal">(Too casual!)</span>
+                        </button>
+                        <button onclick="selectSandboxOption('Good morning, Ma\'am. Allow me to introduce myself', true)" class="bg-white text-emerald-800 hover:bg-slate-100 border border-white font-extrabold py-2.5 px-4 rounded-xl text-xs transition-all flex items-center gap-1 shadow-md">
+                            ⭐ "Good morning, Ma'am. Allow me to introduce myself" <span class="text-emerald-600 font-extrabold">(Perfect Formal!)</span>
+                        </button>
+                        <button onclick="selectSandboxOption('Yo, guys! Check me out', false)" class="bg-white/20 hover:bg-white/30 text-white border border-white/30 font-bold py-2.5 px-4 rounded-xl text-xs transition-all flex items-center gap-1">
+                            ❌ "Yo, guys! Check me out" <span class="text-yellow-200 font-normal">(Disrespectful here!)</span>
+                        </button>
+                    </div>
+
+                    <!-- Sandbox feedback notification -->
+                    <div id="sandbox-feedback" class="hidden p-4 rounded-2xl text-center text-sm font-bold animate-pulse">
+                        Excellent selection! You respected the formal context.
+                    </div>
+                </div>
+
+                <!-- Navigation buttons -->
+                <div class="flex justify-between items-center">
+                    <button onclick="switchTab('learn-others')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-6 rounded-2xl transition-all"><i class="fa-solid fa-arrow-left mr-1"></i> Back</button>
+                    <button onclick="switchTab('game-center'); completeLessonStep(60);" class="bg-brand-purple hover:bg-orange-600 text-white font-bold py-2.5 px-6 rounded-2xl shadow-md transition-all">Next: Gamified Quests <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                </div>
+            </div>
+
+            <!-- TAB 5: GAME CENTER (THE QUEST ZONE) -->
+            <div id="tab-content-game-center" class="tab-pane hidden space-y-6">
+                <!-- Section Header -->
+                <div class="bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-800 text-white rounded-3xl p-6 border border-teal-500 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="p-3 bg-white/20 text-yellow-300 rounded-2xl font-extrabold text-2xl shadow-inner"><i class="fa-solid fa-gamepad"></i></span>
+                        <div>
+                            <h2 class="font-friendly text-2xl font-bold">English Gamified Quest Zone</h2>
+                            <p class="text-xs text-teal-100 font-medium">Play, complete tasks, earn points, and unlock your SMP Level Badge!</p>
+                        </div>
+                    </div>
+                    <!-- XP Counter Display -->
+                    <div class="bg-gradient-to-r from-amber-400 to-orange-500 text-white font-extrabold px-5 py-2.5 rounded-2xl shadow-md flex items-center gap-2 border border-white/20">
+                        <i class="fa-solid fa-star text-amber-200 text-lg animate-spin"></i>
+                        <span>Score: <span id="game-score-display">0</span> XP</span>
+                    </div>
+                </div>
+
+                <!-- Mini Menu for Games -->
+                <div class="flex flex-wrap gap-2 border-b border-orange-100 pb-2">
+                    <button onclick="selectSubGame('listening')" id="btn-subgame-listening" class="py-2 px-4 rounded-xl text-xs font-extrabold transition-all bg-brand-purple text-white shadow-sm">🎧 1. Listening Quest</button>
+                    <button onclick="selectSubGame('jumbled')" id="btn-subgame-jumbled" class="py-2 px-4 rounded-xl text-xs font-extrabold transition-all text-slate-600 hover:bg-slate-100">🧩 2. Jumbled Sentence</button>
+                    <button onclick="selectSubGame('hots')" id="btn-subgame-hots" class="py-2 px-4 rounded-xl text-xs font-extrabold transition-all text-slate-600 hover:bg-slate-100">💡 3. HOTS MCQ Quest</button>
+                    <button onclick="selectSubGame('wordpuzzle')" id="btn-subgame-wordpuzzle" class="py-2 px-4 rounded-xl text-xs font-extrabold transition-all text-slate-600 hover:bg-slate-100">🔍 4. Word Finder</button>
+                    <button onclick="selectSubGame('crossword')" id="btn-subgame-crossword" class="py-2 px-4 rounded-xl text-xs font-extrabold transition-all text-slate-600 hover:bg-slate-100">🧩 5. Crossword (TTS)</button>
+                </div>
+
+                <!-- GAME SUB-PANEL 1: LISTENING QUEST -->
+                <div id="game-panel-listening" class="subgame-pane bg-gradient-to-br from-teal-600 to-emerald-700 text-white rounded-3xl p-6 border border-teal-500 shadow-lg space-y-4">
+                    <div class="bg-white/10 p-4 rounded-2xl border border-white/20">
+                        <h3 class="font-friendly text-lg font-bold text-yellow-300 flex items-center gap-2">
+                            <i class="fa-solid fa-headphones"></i> Quest 1: Listening Comprehension
+                        </h3>
+                        <p class="text-xs text-teal-100 mt-1">Listen closely to the English introduction audio. Choose the correct analysis based on what you hear!</p>
+                    </div>
+
+                    <!-- TTS trigger audio control -->
+                    <div class="flex justify-center py-4 bg-white/5 rounded-3xl border border-dashed border-white/20">
+                        <div class="text-center space-y-2">
+                            <button onclick="playListeningAudio()" class="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 text-white shadow-lg hover:scale-105 transition-all flex items-center justify-center border-2 border-amber-300">
+                                <i class="fa-solid fa-play text-2xl ml-1"></i>
+                            </button>
+                            <p class="text-xs font-bold text-yellow-300">Click to Play Narrator Voice</p>
+                            <p class="text-[10px] text-teal-100 italic font-medium">Text being read: "Hello. My brother is Dian. He is fourteen years old. He loves playing chess."</p>
+                        </div>
+                    </div>
+
+                    <!-- HOTS Comprehension Choice -->
+                    <div class="space-y-3">
+                        <p class="text-sm font-bold text-white">Analytical Question: Based on the audio introduction, which statement is CORRECT?</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <button onclick="answerListening(1, this)" class="listening-option text-left p-3.5 rounded-2xl border border-white/20 bg-white/10 text-xs font-semibold hover:bg-white/20 transition-all flex items-start gap-2">
+                                <span class="bg-yellow-400 text-slate-900 w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px]">A</span>
+                                <span>Dian is introduce himself directly. He is fourteen years old.</span>
+                            </button>
+                            <button onclick="answerListening(2, this)" class="listening-option text-left p-3.5 rounded-2xl border border-white/20 bg-white/10 text-xs font-semibold hover:bg-white/20 transition-all flex items-start gap-2">
+                                <span class="bg-yellow-400 text-slate-900 w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px]">B</span>
+                                <span>The speaker is introducing her brother who likes to play chess.</span>
+                            </button>
+                            <button onclick="answerListening(3, this)" class="listening-option text-left p-3.5 rounded-2xl border border-white/20 bg-white/10 text-xs font-semibold hover:bg-white/20 transition-all flex items-start gap-2">
+                                <span class="bg-yellow-400 text-slate-900 w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px]">C</span>
+                                <span>The speaker is fourteen years old and likes playing chess.</span>
+                            </button>
+                            <button onclick="answerListening(4, this)" class="listening-option text-left p-3.5 rounded-2xl border border-white/20 bg-white/10 text-xs font-semibold hover:bg-white/20 transition-all flex items-start gap-2">
+                                <span class="bg-yellow-400 text-slate-900 w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px]">D</span>
+                                <span>The sibling being described is a female sister named Dian.</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="listening-feedback" class="hidden p-3.5 rounded-xl text-center font-bold text-xs"></div>
+                </div>
+
+                <!-- GAME SUB-PANEL 2: JUMBLED SENTENCES -->
+                <div id="game-panel-jumbled" class="subgame-pane hidden bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-3xl p-6 border border-orange-300 shadow-lg space-y-4">
+                    <div class="bg-white/10 p-4 rounded-2xl border border-white/20">
+                        <h3 class="font-friendly text-lg font-bold text-yellow-100 flex items-center gap-2">
+                            <i class="fa-solid fa-puzzle-piece"></i> Quest 2: Jumbled Sentence Puzzle
+                        </h3>
+                        <p class="text-xs text-orange-50 mt-1">Reconstruct the perfect introduction syntax! Click the scattered word blocks below in the correct order to form a polite greeting sentence.</p>
+                    </div>
+
+                    <!-- Word blocks area -->
+                    <div class="space-y-4">
+                        <div class="flex flex-wrap gap-2 justify-center p-4 bg-white/10 rounded-2xl border border-white/15 min-h-[60px]" id="jumbled-word-source">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+
+                        <div>
+                            <span class="block text-xs font-bold text-orange-100 uppercase tracking-wide mb-2">Your Arranged Sentence:</span>
+                            <div class="p-4 bg-white/20 rounded-2xl border border-white/20 flex flex-wrap gap-2 min-h-[60px]" id="jumbled-word-target">
+                                <!-- Populated dynamically by clicks -->
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 justify-end">
+                            <button onclick="resetJumbled()" class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all">Reset Sequence</button>
+                            <button onclick="checkJumbledAnswer()" class="bg-white text-orange-800 font-extrabold py-2 px-5 rounded-xl text-xs shadow-md transition-all hover:scale-105">Verify Sentence</button>
+                        </div>
+                    </div>
+
+                    <div id="jumbled-feedback" class="hidden p-3.5 rounded-xl text-center font-bold text-xs"></div>
+                </div>
+
+                <!-- GAME SUB-PANEL 3: HOTS MULTIPLE CHOICE -->
+                <div id="game-panel-hots" class="subgame-pane hidden bg-gradient-to-br from-brand-blue to-teal-700 text-white rounded-3xl p-6 border border-teal-500 shadow-lg space-y-6">
+                    <div class="bg-white/10 p-4 rounded-2xl border border-white/20">
+                        <h3 class="font-friendly text-lg font-bold text-yellow-300 flex items-center gap-2">
+                            <i class="fa-solid fa-brain"></i> Quest 3: HOTS Analytical Multiple Choice
+                        </h3>
+                        <p class="text-xs text-teal-100 mt-1">These questions evaluate your literacy, deductive reasoning, and contextual mastery. Think deep before answering!</p>
+                    </div>
+
+                    <!-- HOTS Quiz Flow Container -->
+                    <div id="hots-quiz-container" class="space-y-6">
+                        <!-- Dynamic active question -->
+                        <div class="bg-white/10 p-4 rounded-2xl border border-white/25 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="bg-yellow-300 text-slate-900 text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase">Comprehension & Analysis</span>
+                                <span class="text-xs text-teal-200 font-bold">Question <span id="hots-q-num">1</span> of 5</span>
+                            </div>
+                            <p id="hots-q-text" class="text-sm font-bold text-white leading-relaxed"></p>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-2.5" id="hots-options-container">
+                            <!-- Loaded via JS -->
+                        </div>
+
+                        <!-- Quiz Feedback -->
+                        <div id="hots-feedback" class="hidden p-3.5 rounded-xl text-center font-bold text-xs transition-all"></div>
+
+                        <!-- Progress indicator & next -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-teal-100 font-bold">Current Score contribution: +20 XP per perfect response</span>
+                            <button id="btn-next-hots" onclick="nextHotsQuestion()" disabled class="bg-white/20 text-white/50 font-bold py-2 px-5 rounded-xl text-xs transition-all">Next Question <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GAME SUB-PANEL 4: WORD FINDER -->
+                <div id="game-panel-wordpuzzle" class="subgame-pane hidden bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-3xl p-6 border border-emerald-500 shadow-lg space-y-4">
+                    <div class="bg-white/10 p-4 rounded-2xl border border-white/20">
+                        <h3 class="font-friendly text-lg font-bold text-yellow-300 flex items-center gap-2">
+                            <i class="fa-solid fa-search"></i> Quest 4: Key Vocabulary Word Finder
+                        </h3>
+                        <p class="text-xs text-emerald-100 mt-1">Locate target English greeting/pronoun words hidden inside the grid matrix. Click letter blocks to form/select words.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Left Side: Target list of words -->
+                        <div class="bg-white/10 p-4 rounded-2xl border border-white/15 space-y-3">
+                            <span class="block text-xs font-bold text-yellow-300 uppercase tracking-wide">Target Words to Find:</span>
+                            <div class="space-y-2">
+                                <div id="word-target-HE" class="bg-white/10 p-2.5 rounded-xl border border-white/10 flex justify-between items-center text-xs font-bold text-white">
+                                    <span>HE (Subject pronoun)</span>
+                                    <span class="text-white/30"><i class="fa-solid fa-circle-question"></i></span>
+                                </div>
+                                <div id="word-target-NAME" class="bg-white/10 p-2.5 rounded-xl border border-white/10 flex justify-between items-center text-xs font-bold text-white">
+                                    <span>NAME (Noun for Identity)</span>
+                                    <span class="text-white/30"><i class="fa-solid fa-circle-question"></i></span>
+                                </div>
+                                <div id="word-target-HOBBY" class="bg-white/10 p-2.5 rounded-xl border border-white/10 flex justify-between items-center text-xs font-bold text-white">
+                                    <span>HOBBY (Leisure activity)</span>
+                                    <span class="text-white/30"><i class="fa-solid fa-circle-question"></i></span>
+                                </div>
+                                <div id="word-target-GREET" class="bg-white/10 p-2.5 rounded-xl border border-white/10 flex justify-between items-center text-xs font-bold text-white">
+                                    <span>GREET (Polite opener)</span>
+                                    <span class="text-white/30"><i class="fa-solid fa-circle-question"></i></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Side: Grid itself -->
+                        <div class="md:col-span-2 space-y-3">
+                            <div class="grid grid-cols-6 gap-2 bg-white/10 p-4 rounded-3xl border border-white/20 mx-auto max-w-[320px]" id="word-puzzle-grid">
+                                <!-- Rendered programmatically -->
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs font-bold text-yellow-200">Selected Letters: <span id="puzzle-selection-display" class="bg-yellow-400 text-slate-900 px-2.5 py-1 rounded font-mono font-bold">...</span></p>
+                                <div class="mt-2 flex justify-center gap-2">
+                                    <button onclick="clearWordSelection()" class="bg-white/15 hover:bg-white/25 text-white font-bold py-1.5 px-3 rounded-lg text-xs border border-white/20">Clear Selected</button>
+                                    <button onclick="submitWordSelection()" class="bg-white text-emerald-800 font-extrabold py-1.5 px-4 rounded-lg text-xs shadow-md">Submit Word</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GAME SUB-PANEL 5: CROSSWORD PUZZLE -->
+                <div id="game-panel-crossword" class="subgame-pane hidden bg-gradient-to-br from-brand-purple via-orange-500 to-amber-500 text-white rounded-3xl p-6 border border-orange-400 shadow-lg space-y-6">
+                    <div class="bg-white/10 p-4 rounded-2xl border border-white/20">
+                        <h3 class="font-friendly text-lg font-bold text-yellow-300 flex items-center gap-2">
+                            <i class="fa-solid fa-square-poll-horizontal"></i> Quest 5: SMP Grade 7 Crossword (TTS)
+                        </h3>
+                        <p class="text-xs text-orange-100 mt-1">Challenge your analytical thinking! Solve 11 questions horizontally and vertically regarding grammar, vocabulary, pronouns, and polite social patterns.</p>
+                    </div>
+
+                    <!-- Crossword Interactive Playground -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        <!-- Left Grid View (Scrollable on smaller viewport) -->
+                        <div class="lg:col-span-7 bg-white/10 p-4 rounded-3xl border border-white/25">
+                            <p class="text-xs text-yellow-200 font-bold mb-3 text-center"><i class="fa-solid fa-circle-info"></i> Click on cell blocks to enter letters. Match with clues on the right!</p>
+                            <div class="overflow-x-auto w-full flex justify-center">
+                                <div id="crossword-grid-container" class="grid grid-cols-12 gap-1 p-2 bg-slate-950/40 rounded-2xl border border-white/10 min-w-[360px] max-w-[480px]">
+                                    <!-- Populated programmatically via initCrossword() -->
+                                </div>
+                            </div>
+                            <div class="mt-4 flex flex-wrap gap-2 justify-center">
+                                <button onclick="checkCrosswordAnswers()" class="bg-emerald-500 text-white hover:bg-emerald-600 font-extrabold py-2 px-5 rounded-xl text-xs shadow-md flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-check"></i> Check Grid
+                                </button>
+                                <button onclick="resetCrosswordGrid()" class="bg-white/20 text-white hover:bg-white/30 font-bold py-2 px-4 rounded-xl text-xs">
+                                    Reset Puzzle
+                                </button>
+                                <button onclick="revealCrosswordSolutions()" class="bg-yellow-400 text-slate-900 hover:bg-yellow-500 font-extrabold py-2 px-4 rounded-xl text-xs shadow-md">
+                                    Reveal Answers (Cheat)
+                                </button>
+                            </div>
+                            <div id="crossword-feedback" class="hidden mt-3 p-3 rounded-xl text-center font-bold text-xs"></div>
+                        </div>
+
+                        <!-- Right Clues View -->
+                        <div class="lg:col-span-5 bg-white/10 p-4 rounded-3xl border border-white/25 space-y-4">
+                            <!-- Across Clues -->
+                            <div>
+                                <span class="bg-yellow-300 text-slate-900 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider block w-max"><i class="fa-solid fa-arrow-right"></i> Horizontal (Across)</span>
+                                <div class="space-y-2.5 mt-2.5" id="crossword-clues-across">
+                                    <!-- Generated dynamically -->
+                                </div>
+                            </div>
+                            
+                            <!-- Down Clues -->
+                            <div class="border-t border-white/10 pt-4">
+                                <span class="bg-teal-400 text-slate-900 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider block w-max"><i class="fa-solid fa-arrow-down"></i> Vertical (Down)</span>
+                                <div class="space-y-2.5 mt-2.5" id="crossword-clues-down">
+                                    <!-- Generated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation buttons -->
+                <div class="flex justify-between items-center">
+                    <button onclick="switchTab('role-play')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-6 rounded-2xl transition-all"><i class="fa-solid fa-arrow-left mr-1"></i> Back</button>
+                    <button onclick="switchTab('literacy-zone');" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-2xl shadow-md transition-all">Next: Literacy Corner <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                </div>
+            </div>
+
+            <!-- TAB 6: LITERACY ZONE -->
+            <div id="tab-content-literacy-zone" class="tab-pane hidden space-y-6">
+                <!-- Section Header -->
+                <div class="bg-gradient-to-r from-brand-purple via-orange-500 to-rose-500 text-white rounded-3xl p-6 border border-orange-400 shadow-xl flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="p-3 bg-white/20 text-yellow-300 rounded-2xl font-extrabold text-2xl shadow-inner"><i class="fa-solid fa-book-open"></i></span>
+                        <div>
+                            <h2 class="font-friendly text-2xl font-bold">Unit 5: Literacy Corner</h2>
+                            <p class="text-xs text-orange-100 font-medium">Dive into fascinating reading comprehension stories and express yourself in creative writing!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reading Exercise Box -->
+                <div class="bg-gradient-to-br from-teal-600 via-teal-700 to-teal-800 text-white rounded-3xl p-6 border border-teal-500 shadow-lg space-y-4">
+                    <div class="bg-white/10 p-4 rounded-2xl border border-white/10">
+                        <span class="bg-yellow-400 text-slate-900 text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">Literacy Activity 1: Reading Journey</span>
+                        <h3 class="font-friendly text-2xl font-bold text-white mt-2">Adventure Journal: The Case of the Mysterious Pen-Pal!</h3>
+                        <p class="text-xs text-teal-100">Read this exciting pen-pal letter and decode the profile details to complete the questions below.</p>
+                    </div>
+
+                    <!-- Reading Text block -->
+                    <div class="p-6 bg-white text-slate-800 rounded-2xl shadow-inner leading-relaxed space-y-3">
+                        <span class="text-xs font-bold text-teal-600 uppercase tracking-widest block border-b pb-1">Incoming Digital Message...</span>
+                        <p class="text-sm font-semibold">
+                            Dear Class 7-A Explorer,<br><br>
+                            Hello! My name is <strong>Kenji Tanaka</strong>. I am thirteen years old. I live in the beautiful city of <strong>Kyoto, Japan</strong>. My home is famous for its colorful autumn leaf gardens!
+                        </p>
+                        <p class="text-sm">
+                            I want to tell you about my favorite leisure activity. My hobby is <strong>crafting origami structures</strong>. Origami is the traditional Japanese art of paper folding. I can make cute paper cranes and frogs using colorful sheets! I also enjoy playing tennis with my older brother. His name is Hiro. He is fifteen, and his hobby is cooking delicious ramen noodles! 
+                        </p>
+                        <p class="text-sm font-semibold text-teal-700">
+                            I hope we can become pen-pals and study English together. What is your hobby? Where do you live? Write back soon!<br><br>
+                            Warm regards,<br>
+                            Kenji
+                        </p>
+                        <button onclick="playSpeech('Dear Class 7-A Explorer. Hello! My name is Kenji Tanaka. I am thirteen years old. I live in the beautiful city of Kyoto, Japan. My hobby is crafting origami structures.')" class="bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold py-1.5 px-3.5 rounded-xl text-xs flex items-center gap-1 transition-all">
+                            <i class="fa-solid fa-volume-high"></i> Read Out Loud
+                        </button>
+                    </div>
+
+                    <!-- Reading Comprehension Questions -->
+                    <div class="space-y-4 bg-white/10 p-5 rounded-2xl border border-white/10">
+                        <p class="text-sm font-bold text-white"><i class="fa-solid fa-circle-question text-yellow-300"></i> Literacy Question: What is Kenji's primary hobby, and how is it connected to his culture?</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="reading-comp-container">
+                            <button onclick="verifyReadingAnswer(1, this)" class="reading-opt text-left p-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-semibold transition-all">
+                                A. Playing tennis, which is the national sport of Japan.
+                            </button>
+                            <button onclick="verifyReadingAnswer(2, this)" class="reading-opt text-left p-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-semibold transition-all">
+                                B. Cooking delicious ramen noodles with his fifteen-year-old brother.
+                            </button>
+                            <button onclick="verifyReadingAnswer(3, this)" class="reading-opt text-left p-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-semibold transition-all">
+                                C. Crafting paper origami, which is a traditional Japanese paper-folding art.
+                            </button>
+                            <button onclick="verifyReadingAnswer(4, this)" class="reading-opt text-left p-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-semibold transition-all">
+                                D. Hiking through the colorful autumn leaf gardens in Kyoto.
+                            </button>
+                        </div>
+                        <div id="reading-feedback" class="hidden p-3 rounded-xl text-center font-bold text-xs"></div>
+                    </div>
+                </div>
+
+                <!-- Writing Exercise Box -->
+                <div class="bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-3xl p-6 border border-orange-300 shadow-lg space-y-4">
+                    <div class="bg-white/10 p-4 rounded-2xl border border-white/20">
+                        <span class="bg-yellow-300 text-slate-900 text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">Literacy Activity 2: Creative Writing Quest</span>
+                        <h3 class="font-friendly text-2xl font-bold text-white mt-2">The Guild of Heroes: Crafting Your Legendary Profile!</h3>
+                        <p class="text-xs text-orange-50">Imagine you are entering a magical guild of explorers. Introduce yourself to the guildmaster! You must include your hero name, age, village origin, and your special skill/hobby.</p>
+                    </div>
+
+                    <!-- Interactive template assistant -->
+                    <div class="bg-white/10 p-4 rounded-2xl border border-white/15 space-y-3">
+                        <span class="block text-xs font-bold text-orange-100 uppercase">Interactive Proclamation Builder:</span>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-slate-800">
+                            <input id="hero-name" type="text" placeholder="Hero Name (e.g. Arka the Wise)" class="p-2 rounded-lg text-xs" oninput="proclaimGuildHero()">
+                            <input id="hero-age" type="number" placeholder="Hero Age (e.g. 13)" class="p-2 rounded-lg text-xs" oninput="proclaimGuildHero()">
+                            <input id="hero-origin" type="text" placeholder="Kingdom/Town" class="p-2 rounded-lg text-xs" oninput="proclaimGuildHero()">
+                            <input id="hero-hobby" type="text" placeholder="Special Skill/Hobby" class="p-2 rounded-lg text-xs" oninput="proclaimGuildHero()">
+                        </div>
+                        <div class="bg-white p-4 rounded-xl text-slate-800 border border-orange-200">
+                            <p id="proclamation-preview" class="text-xs italic font-bold text-slate-600">"Hear ye, Guildmaster! I am Bagas the Brave. I am 13 cycles old. I come from the city of Yogyakarta. My special skill is crafting digital games. I seek to join your legendary guild!"</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-orange-100 uppercase tracking-wide">Write your final customized introduction (Minimum 20 words in English):</label>
+                        <textarea id="essay-input-area" rows="4" placeholder="Good morning, Guildmaster. Allow me to introduce myself..." class="w-full p-4 rounded-2xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-200 font-medium text-sm"></textarea>
+                        
+                        <div class="flex justify-between items-center flex-wrap gap-2 pt-1">
+                            <span class="text-xs font-bold text-orange-100">Ensure proper greetings, correct pronouns, and punctuation levels.</span>
+                            <button onclick="evaluateEssay()" class="bg-white text-orange-800 hover:bg-slate-100 font-extrabold py-2.5 px-5 rounded-xl text-xs transition-all shadow-md">Submit to Guildmaster</button>
+                        </div>
+                    </div>
+
+                    <!-- Interactive score feedback framework -->
+                    <div id="essay-result-card" class="hidden p-5 bg-white text-slate-800 rounded-2xl space-y-3 shadow-xl">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-sm text-slate-800">Guild Evaluation Report:</h4>
+                            <span id="essay-score-badge" class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase">ACCEPTED</span>
+                        </div>
+                        <ul class="text-xs text-slate-600 space-y-1">
+                            <li>🎯 <strong class="text-slate-700">Vocabulary length check:</strong> <span id="eval-length">Pass</span></li>
+                            <li>🗣️ <strong class="text-slate-700">Politeness status:</strong> Matches the formal context.</li>
+                            <li>🔄 <strong class="text-slate-700">Identity syntax:</strong> Validated name, age, city, and hobby.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Navigation buttons -->
+                <div class="flex justify-between items-center">
+                    <button onclick="switchTab('game-center')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-6 rounded-2xl transition-all"><i class="fa-solid fa-arrow-left mr-1"></i> Back</button>
+                    <button onclick="triggerReportCard();" class="bg-gradient-to-r from-teal-500 to-emerald-600 text-white font-extrabold py-2.5 px-6 rounded-2xl shadow-md transition-all">Submit Final & Unlock Certificate <i class="fa-solid fa-certificate ml-1"></i></button>
+                </div>
+            </div>
+
+            <!-- TAB 7: PERFORMANCE SUMMARY / CERTIFICATE -->
+            <div id="tab-content-report" class="tab-pane hidden space-y-6">
+                
+                <!-- LOCKED STATE: Remedial Message if under KKM 75 -->
+                <div id="remedial-container" class="hidden max-w-2xl mx-auto bg-gradient-to-br from-orange-500 to-red-600 text-white rounded-3xl p-8 border border-orange-400 shadow-2xl text-center space-y-6 relative overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 opacity-10 text-[180px] pointer-events-none font-bold">Try!</div>
+                    <span class="text-6xl block animate-bounce">🎯</span>
+                    <div class="space-y-2">
+                        <h2 class="font-friendly text-3xl font-extrabold">You Can Do It, Explorer!</h2>
+                        <p class="text-sm text-orange-100 font-medium max-w-md mx-auto">
+                            Great effort! You scored <strong class="text-yellow-300 text-lg" id="remedial-current-score">0</strong> out of 100. 
+                            The standard passing grade (KKM) is <strong class="text-yellow-300 text-lg">75</strong> to unlock your official Certificate.
+                        </p>
+                    </div>
+
+                    <!-- Interactive Guide on what to review -->
+                    <div class="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/15 max-w-md mx-auto space-y-3 text-left">
+                        <span class="text-xs font-bold text-yellow-300 uppercase tracking-widest block text-center border-b border-white/10 pb-2">💡 Score-Boosting Quests Available:</span>
+                        <ul class="text-xs space-y-2 font-medium text-orange-50">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-play text-yellow-300"></i> Go to <strong>Gamified Quest</strong> & solve <strong>HOTS Quiz</strong> (+50 pts)</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-play text-yellow-300"></i> Solve the <strong>Crossword Puzzle</strong> completely (+15 pts)</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-play text-yellow-300"></i> Complete the <strong>Reading & Writing Quests</strong> (+25 pts)</li>
+                        </ul>
+                    </div>
+
+                    <div class="pt-2">
+                        <button onclick="switchTab('game-center')" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-extrabold py-3.5 px-8 rounded-2xl shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2 mx-auto text-sm">
+                            <i class="fa-solid fa-gamepad"></i> Open Quest Zone & Boost My Score!
+                        </button>
+                    </div>
+                </div>
+
+                <!-- UNLOCKED STATE: Printable Certificate Widget (Active if score >= 75) -->
+                <div id="certificate-unlocked-container" class="hidden space-y-6">
+                    <div class="bg-emerald-600 text-white rounded-2xl p-4 text-center text-sm font-bold border border-emerald-500 shadow-md animate-pulse">
+                        🎉 Congratulations! You have exceeded the KKM passing standard of 75! Your official certificate is ready.
+                    </div>
+
+                    <div class="bg-white rounded-3xl p-6 md:p-10 border-8 border-double border-amber-500 shadow-2xl text-center relative overflow-hidden max-w-2xl mx-auto" id="printable-certificate-card">
+                        <!-- Elegant border detailing inside certificate margin -->
+                        <div class="absolute inset-4 border-2 border-amber-300/60 rounded-2xl pointer-events-none"></div>
+
+                        <!-- Ornate corner decorations -->
+                        <div class="absolute top-6 left-6 text-amber-500/25 text-3xl"><i class="fa-solid fa-ribbon"></i></div>
+                        <div class="absolute top-6 right-6 text-amber-500/25 text-3xl"><i class="fa-solid fa-ribbon"></i></div>
+                        <div class="absolute bottom-6 left-6 text-amber-500/25 text-3xl"><i class="fa-solid fa-ribbon"></i></div>
+                        <div class="absolute bottom-6 right-6 text-amber-500/25 text-3xl"><i class="fa-solid fa-ribbon"></i></div>
+
+                        <div class="relative z-10 space-y-6 py-4">
+                            <!-- Golden Seal Trophy Icon -->
+                            <div class="mx-auto w-24 h-24 bg-gradient-to-tr from-yellow-300 via-amber-400 to-yellow-500 rounded-full flex items-center justify-center shadow-lg border-4 border-white animate-spin-slow">
+                                <span class="text-4xl text-amber-800">🏆</span>
+                            </div>
+
+                            <div>
+                                <span class="text-xs font-bold text-amber-600 tracking-widest uppercase block">Junior High School Level English Achievement</span>
+                                <h2 class="font-friendly text-3xl md:text-4xl font-extrabold text-slate-800 mt-1">CERTIFICATE OF STUDY</h2>
+                                <p class="text-[10px] md:text-xs text-slate-400 mt-1 uppercase tracking-wider">Verification of National Curriculum Grade VII Competency</p>
+                            </div>
+
+                            <!-- Recipient details -->
+                            <div class="border-y border-dashed border-amber-200 py-6 my-4 max-w-md mx-auto">
+                                <span class="block text-xs text-slate-400 font-bold uppercase">This document proudly certifies that:</span>
+                                <h3 id="cert-student-name" class="font-friendly text-3xl font-bold text-teal-800 mt-1 drop-shadow-sm">Guest Explorer</h3>
+                                <p class="text-xs text-slate-600 mt-4 leading-relaxed font-semibold">
+                                    has successfully met the English social interaction criteria and completed the course:<br>
+                                    <span class="text-teal-700 font-bold text-sm">"Introducing Ourselves & Others" (Social Interaction & Pronouns)</span>
+                                </p>
+                            </div>
+
+                            <!-- Metrics block inside Certificate -->
+                            <div class="grid grid-cols-3 gap-3 max-w-md mx-auto">
+                                <div class="bg-teal-50 p-2.5 rounded-xl border border-teal-100">
+                                    <span class="block text-[9px] text-slate-500 font-bold uppercase">Passing Grade (KKM)</span>
+                                    <span class="font-friendly text-base font-bold text-teal-800">75 / 100</span>
+                                </div>
+                                <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-100">
+                                    <span class="block text-[9px] text-slate-500 font-bold uppercase">Your Final Score</span>
+                                    <span class="font-friendly text-base font-bold text-amber-700" id="cert-final-score">0 / 100</span>
+                                </div>
+                                <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-100">
+                                    <span class="block text-[9px] text-slate-500 font-bold uppercase">Academic Status</span>
+                                    <span class="font-friendly text-base font-bold text-emerald-700 uppercase tracking-tight text-[11px] md:text-sm">PASSED KKM ✨</span>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-end pt-4 max-w-md mx-auto">
+                                <div class="text-left">
+                                    <span class="block text-[10px] text-slate-400 font-bold uppercase">Issued on:</span>
+                                    <span class="text-xs font-bold text-slate-700" id="cert-issue-date">June 2026</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="w-24 border-b border-slate-400 text-center font-friendly font-bold text-xs italic text-teal-800">IntroWorld Sys</div>
+                                    <span class="block text-[9px] text-slate-400 font-bold uppercase mt-1">Authorized Seal</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center space-x-2">
+                        <button onclick="window.print()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold py-3 px-8 rounded-2xl shadow-lg hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-print"></i> Print My Achievement
+                        </button>
+                        <button onclick="switchTab('dashboard')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-6 rounded-2xl transition-all inline-flex items-center gap-2 text-sm">
+                            Back to Start
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- App Footer -->
+    <footer class="mt-auto bg-slate-900 text-slate-400 py-6 border-t border-slate-800 text-center px-4">
+        <div class="max-w-7xl mx-auto space-y-2">
+            <p class="text-sm font-semibold">&copy; 2026 IntroWorld English Interactive. All Rights Reserved.</p>
+            <p class="text-xs text-slate-500">Designed with modern visual pastel pedagogy for Junior High School Grade 7 Students. Built to stimulate analytical and grammatical competence.</p>
+        </div>
+    </footer>
+
+    <script>
+        // App State Management
+        let studentProfile = {
+            name: "Guest Student",
+            avatar: "👦",
+            exp: 0,
+            progress: 10,
+            lessonsCompleted: {
+                ourselves: false,
+                others: false,
+                roleplay: false,
+                listening: false,
+                jumbled: false,
+                hots: false,
+                wordpuzzle: false,
+                crossword: false,
+                reading: false,
+                essay: false
+            }
+        };
+
+        let hotsCorrectCount = 0;
+
+        // HOTS Quiz Data Bank
+        const hotsQuestions = [
+            {
+                q: "A new student named Rian introduces himself. He says: 'I like playing video games because it helps me think strategically. I want to build games someday.' Why does Rian mention his reason for liking video games?",
+                options: [
+                    "A. To show off that he plays computer games.",
+                    "B. To prove that he doesn't like playing outdoor sports.",
+                    "C. To connect his hobby with his dream career and explain his personality analytically.",
+                    "D. To suggest that everyone in grade 7 should play video games."
+                ],
+                correct: 2, // Index C
+                explanation: "Rian mentions strategy and building games to give depth to his personality and connect his current interest to his future aspirations."
+            },
+            {
+                q: "Imagine you are introducing a shy friend named Kevin to other classmates during group study. What is the most polite and appropriate introduction?",
+                options: [
+                    "A. 'Guys, look at Kevin! He has nothing to say.'",
+                    "B. 'This is Kevin. He lives in Bandung and is very talented at science. Kevin, meet the team!'",
+                    "C. 'Kevin, tell them about your life now!'",
+                    "D. 'Hey everyone, he is Kevin. He is a boy.'"
+                ],
+                correct: 1, // Index B
+                explanation: "Option B provides rich contextual credentials (talented at science) to bridge social distance and facilitate easy communication."
+            },
+            {
+                q: "Analyze this email introduction: 'Good afternoon, Ms. Dian. I am Bagas. I am in class 7-B. I am sending my English essay.' What is the primary purpose and context of this writer?",
+                options: [
+                    "A. Formal context to submit academic homework assignment with basic credential mapping.",
+                    "B. Informal context to play computer games with friends.",
+                    "C. Casual conversation about family structure.",
+                    "D. Expressing regret for late submission."
+                ],
+                correct: 0, // Index A
+                explanation: "Bagas uses formal titles, identifies his grade level, and states his academic mission clearly."
+            },
+            {
+                q: "Suppose you meet the principal in the corridor and want to introduce your father who is picking you up. What structure is culturally and grammatically correct?",
+                options: [
+                    "A. 'Principal, this is my dad. He likes watching television.'",
+                    "B. 'Excuse me, Sir. Allow me to introduce my father, Mr. Gunawan. He is here to pick me up.'",
+                    "C. 'Yo Principal! This guy is Gunawan. He is cool.'",
+                    "D. 'Father, this is the principal. He is old.'"
+                ],
+                correct: 1, // Index B
+                explanation: "Using polite headers ('Excuse me, Sir'), appropriate pronoun sequences, and honorific titles is grammatically and socially appropriate for introducing others in formal scenarios."
+            },
+            {
+                q: "What is the primary difference in pronoun logic between introducing your brother vs. introducing your mother?",
+                options: [
+                    "A. Introducing a brother uses 'She' and 'Her'.",
+                    "B. Introducing a mother uses 'They' and 'Their'.",
+                    "C. Brother uses 'He/His' (male), while mother uses 'She/Her' (female).",
+                    "D. There is no difference; they are identical."
+                ],
+                correct: 2, // Index C
+                explanation: "Pronouns in English are strictly categorized by gender. Males map to 'He/His', whereas females map to 'She/Her'."
+            }
+        ];
+
+        let currentHotsIndex = 0;
+
+        // Jumbled Sentence Source Word Array
+        const targetJumbledSentence = ["Good", "morning", "class,", "allow", "me", "to", "introduce", "myself."];
+        let jumbledUserSelected = [];
+
+        // Word finder config
+        const puzzleGridData = [
+            ['G', 'R', 'E', 'E', 'T', 'X'],
+            ['A', 'H', 'B', 'P', 'R', 'O'],
+            ['U', 'O', 'Y', 'L', 'Z', 'M'],
+            ['D', 'B', 'W', 'H', 'E', 'N'],
+            ['V', 'B', 'K', 'O', 'D', 'A'],
+            ['O', 'Y', 'N', 'A', 'M', 'E']
+        ];
+        let puzzleSelectedCoordinates = [];
+
+        // Flashcard Speaking Dataset
+        const flashcardsData = [
+            {
+                category: "GREETING HELPER",
+                title: "Formal Welcome",
+                phonetic: "/ɡʊd ˈmɔːnɪŋ ˈɛvrɪwʌn! lɛt miː ˌɪntrəˈdjuːs maɪˈsɛlf./",
+                prompt: "Good morning everyone! Let me introduce myself.",
+                frontColor: "from-amber-400 to-orange-500",
+                backColor: "from-brand-blue to-teal-800"
+            },
+            {
+                category: "IDENTITY MARKER",
+                title: "Age Explorer",
+                phonetic: "/aɪ æm ˈθɜːˈtiːn jɪəz əʊld ænd aɪ lɪv ɪn dɛpɒk./",
+                prompt: "I am thirteen years old and I live in Depok.",
+                frontColor: "from-teal-400 to-emerald-500",
+                backColor: "from-orange-500 to-red-600"
+            },
+            {
+                category: "HOBBY DISCOVERY",
+                title: "Leisure Sharing",
+                phonetic: "/maɪ ˈhɒbi ɪz ˈpleɪɪŋ ˈfʊtbɔːl wɪð maɪ frendz./",
+                prompt: "My hobby is playing football with my friends.",
+                frontColor: "from-blue-400 to-brand-blue",
+                backColor: "from-amber-500 to-orange-600"
+            },
+            {
+                category: "INTRODUCING OTHERS",
+                title: "Third-Person Intro",
+                phonetic: "/ðɪs ɪz maɪ ˈklɑːsmeɪt. hɜː neɪm ɪz ˈsɪti. ʃiː laɪks ˈdrɔːɪŋ./",
+                prompt: "This is my classmate. Her name is Siti. She likes drawing.",
+                frontColor: "from-rose-400 to-pink-500",
+                backColor: "from-indigo-600 to-teal-800"
+            }
+        ];
+        let activeFlashcardIndex = 0;
+
+        // CROSSWORD PUZZLE DATABASE & COORDINATES MAPPING
+        const crosswordAnswers = {
+            "1,1": "I", "1,2": "N", "1,3": "T", "1,4": "R", "1,5": "O", "1,6": "D", "1,7": "U", "1,8": "C", "1,9": "E",
+            "2,2": "I", "3,2": "C", "4,2": "K", "5,2": "N", "6,2": "A", "7,2": "M", "8,2": "E",
+            "8,0": "G", "8,1": "R", "8,3": "E", "8,4": "T", "8,5": "I", "8,6": "N", "8,7": "G",
+            "7,1": "P", "9,1": "O", "10,1": "N", "11,1": "O", "12,1": "U", "13,1": "N",
+            "0,5": "H", "2,5": "B", "3,5": "B", "4,5": "Y",
+            "4,4": "C", "4,6": "C", "4,7": "L", "4,8": "I", "4,9": "N", "4,10": "G",
+            "5,10": "A", "6,10": "M", "7,10": "E",
+            "7,5": "P", "7,6": "O", "7,7": "L", "7,8": "I", "7,9": "T",
+            "6,8": "S", "8,8": "S", "9,8": "T", "10,8": "E", "11,8": "R",
+            "9,5": "M", "9,6": "E", "9,7": "E",
+            "10,6": "N", "11,6": "D"
+        };
+
+        const crosswordNumbers = {
+            "1,1": "1",
+            "1,2": "2",
+            "8,0": "3",
+            "7,1": "4",
+            "0,5": "5",
+            "4,4": "6",
+            "4,10": "7",
+            "7,5": "8",
+            "6,8": "9",
+            "9,5": "10",
+            "9,6": "11"
+        };
+
+        const crosswordClues = {
+            across: [
+                { num: 1, text: "The action verb of sharing your name, age, and hobbies to others (9 letters)" },
+                { num: 3, text: "A polite opening greeting expression, e.g., 'Hello' or 'Good morning' (8 letters)" },
+                { num: 6, text: "A popular Grade 7 outdoor activity involving riding a two-wheeled vehicle (7 letters)" },
+                { num: 8, text: "Having or showing behavior that is respectful in formal contexts (6 letters)" },
+                { num: 10, text: "The action verb used to stand face-to-face in: 'Nice to ____ you!' (4 letters)" }
+            ],
+            down: [
+                { num: 2, text: "A shorter, friendly, informal name that your classmates call you (8 letters)" },
+                { num: 4, text: "Replaces a noun (like 'He', 'She', or 'They') to avoid repeating names (7 letters)" },
+                { num: 5, text: "An enjoyable leisure activity done for pleasure in free time (5 letters)" },
+                { num: 7, text: "An interactive, playful task or quest, like this crossword! (4 letters)" },
+                { num: 9, text: "A female sibling, introduced using 'She' and 'Her' pronouns (6 letters)" },
+                { num: 11, text: "Opposite of start; to wrap up your introduction using 'Thank you!' (3 letters)" }
+            ]
+        };
+
+        // Voice Reader Function via SpeechSynthesis
+        function playSpeech(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.95; 
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.log("Speech synthesis not supported in this browser.");
+            }
+        }
+
+        // Tab Switching Mechanism with Premium Active/Inactive transitions
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.add('hidden');
+            });
+            document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+
+            // Defined visual parameters for each sidebar button
+            const buttons = [
+                { id: 'dashboard', shadow: 'shadow-orange-300/40' },
+                { id: 'learn-ourselves', shadow: 'shadow-teal-300/40' },
+                { id: 'learn-others', shadow: 'shadow-rose-300/40' },
+                { id: 'role-play', shadow: 'shadow-purple-300/40' },
+                { id: 'game-center', shadow: 'shadow-blue-300/40' },
+                { id: 'literacy-zone', shadow: 'shadow-pink-300/40' }
+            ];
+
+            buttons.forEach(btnObj => {
+                const btn = document.getElementById(`tab-btn-${btnObj.id}`);
+                if (btn) {
+                    // Remove highly saturated active states
+                    btn.classList.remove('scale-105', 'opacity-100', 'border-amber-300', 'shadow-lg', 'saturate-100');
+                    // Inject muted, scaled-down inactive styles
+                    btn.classList.add('scale-95', 'opacity-65', 'saturate-75', 'border-transparent');
+                }
+            });
+
+            // Set specific targeted button to fully active with prominent gold/amber border
+            const activeBtnObj = buttons.find(b => b.id === tabId);
+            if (activeBtnObj) {
+                const activeBtn = document.getElementById(`tab-btn-${activeBtnObj.id}`);
+                if (activeBtn) {
+                    activeBtn.classList.remove('scale-95', 'opacity-65', 'saturate-75', 'border-transparent');
+                    activeBtn.classList.add('scale-105', 'opacity-100', 'border-amber-300', 'shadow-lg', 'saturate-100');
+                }
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Avatar & Profile Customizer Logic
+        function selectAvatar(avatarChar) {
+            studentProfile.avatar = avatarChar;
+            document.querySelectorAll('.avatar-option').forEach(opt => {
+                opt.classList.remove('avatar-selected');
+                if (opt.innerText === avatarChar) {
+                    opt.classList.add('avatar-selected');
+                }
+            });
+            document.getElementById('nav-avatar-preview').innerText = avatarChar;
+            document.getElementById('nav-avatar-mobile').innerText = avatarChar;
+            updateProgressUI();
+        }
+
+        function updateStudentName(nameVal) {
+            const cleanName = nameVal.trim() !== "" ? nameVal : "Guest Explorer";
+            studentProfile.name = cleanName;
+            document.getElementById('nav-student-name').innerText = cleanName;
+            document.getElementById('nav-name-mobile').innerText = cleanName;
+        }
+
+        // FLASHCARD COMPONENT ACTIONS
+        function loadFlashcard(index) {
+            const card = flashcardsData[index];
+            document.getElementById('flashcard-category').innerText = card.category;
+            document.getElementById('flashcard-title').innerText = card.title;
+            document.getElementById('flashcard-phonetic').innerText = card.phonetic;
+            document.getElementById('flashcard-num').innerText = index + 1;
+            
+            // Adjust colors
+            const front = document.getElementById('flashcard-front');
+            const back = document.getElementById('flashcard-back');
+            
+            // Reset rotation classes
+            document.getElementById('flashcard-inner').classList.remove('is-flipped');
+            
+            // Reapply layout gradients
+            front.className = `flashcard-front absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br ${card.frontColor} p-6 flex flex-col justify-between text-white shadow-xl border-2 border-white/20`;
+            back.className = `flashcard-back absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br ${card.backColor} p-6 flex flex-col justify-between text-white shadow-xl border-2 border-white/20`;
+        }
+
+        function toggleFlashcardFlip() {
+            document.getElementById('flashcard-inner').classList.toggle('is-flipped');
+        }
+
+        function playFlashcardAudio(event) {
+            event.stopPropagation(); // Avoid triggering card flip again
+            const card = flashcardsData[activeFlashcardIndex];
+            playSpeech(card.prompt);
+        }
+
+        function navigateFlashcard(direction) {
+            activeFlashcardIndex += direction;
+            if (activeFlashcardIndex >= flashcardsData.length) activeFlashcardIndex = 0;
+            if (activeFlashcardIndex < 0) activeFlashcardIndex = flashcardsData.length - 1;
+            loadFlashcard(activeFlashcardIndex);
+        }
+
+        // Unit 1: Live Sentence Synthesizer Generator
+        function generateIntroDraft() {
+            const name = document.getElementById('intro-name').value || "Rian";
+            const age = document.getElementById('intro-age').value || "13";
+            const city = document.getElementById('intro-city').value || "Jakarta";
+            const hobby = document.getElementById('intro-hobby').value || "playing video games";
+
+            const output = `"Hello everyone! My name is ${name}. I am ${age} years old. I live in ${city}. My hobby is ${hobby}. Nice to meet you!"`;
+            document.getElementById('generated-intro-text').innerText = output;
+        }
+
+        // Unit 2: Friend Introduction Builder
+        function generateFriendIntro() {
+            const name = document.getElementById('friend-name').value || "Kevin";
+            const gender = document.getElementById('friend-gender').value;
+            const city = document.getElementById('friend-city').value || "Bandung";
+            const hobby = document.getElementById('friend-hobby').value || "swimming";
+
+            let subject = "He";
+            let possessive = "His";
+            if (gender === "female") {
+                subject = "She";
+                possessive = "Her";
+            }
+
+            const output = `"Meet my best friend. ${possessive} name is ${name}. ${subject} is from ${city}. ${possessive} favorite hobby is ${hobby}."`;
+            document.getElementById('generated-friend-text').innerText = output;
+        }
+
+        // Complete lesson parts milestone updates
+        function completeLessonStep(percentage) {
+            if (percentage > studentProfile.progress) {
+                studentProfile.progress = percentage;
+                studentProfile.exp += 25;
+                updateProgressUI();
+            }
+        }
+
+        function updateProgressUI() {
+            document.getElementById('total-exp').innerText = studentProfile.exp;
+            document.getElementById('total-exp-mobile').innerText = studentProfile.exp;
+            document.getElementById('game-score-display').innerText = studentProfile.exp;
+            
+            document.getElementById('sidebar-progress-bar').style.width = `${studentProfile.progress}%`;
+            document.getElementById('sidebar-progress-text').innerText = `${studentProfile.progress}%`;
+        }
+
+        // Dialogue Sandbox Response selection
+        function selectSandboxOption(textOption, isCorrect) {
+            const placeholder = document.getElementById('roleplay-select-placeholder');
+            const feedback = document.getElementById('sandbox-feedback');
+            
+            placeholder.innerText = textOption;
+            placeholder.classList.remove('bg-yellow-300', 'text-slate-900', 'border-yellow-500');
+            
+            if (isCorrect) {
+                placeholder.classList.add('bg-emerald-100', 'text-emerald-900', 'border-emerald-500');
+                feedback.innerText = "⭐ Perfect choice! You selected the correct formal register suitable for a teacher.";
+                feedback.className = "p-4 rounded-2xl text-center text-sm font-bold bg-emerald-100 text-emerald-800";
+                if (!studentProfile.lessonsCompleted.roleplay) {
+                    studentProfile.lessonsCompleted.roleplay = true;
+                    studentProfile.exp += 50;
+                    completeLessonStep(50);
+                }
+            } else {
+                placeholder.classList.add('bg-red-100', 'text-red-900', 'border-red-500');
+                feedback.innerText = "❌ Incorrect context. This choice is too casual for a classroom with your teacher. Try another!";
+                feedback.className = "p-4 rounded-2xl text-center text-sm font-bold bg-red-100 text-red-800";
+            }
+            feedback.classList.remove('hidden');
+        }
+
+        // GAME CENTER SUB-GAMES SWAPPERS
+        function selectSubGame(gameKey) {
+            document.querySelectorAll('.subgame-pane').forEach(pane => {
+                pane.classList.add('hidden');
+            });
+            document.getElementById(`game-panel-${gameKey}`).classList.remove('hidden');
+
+            document.querySelectorAll('[id^="btn-subgame-"]').forEach(btn => {
+                btn.classList.remove('bg-brand-purple', 'text-white', 'shadow-sm');
+                btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+            });
+            document.getElementById(`btn-subgame-${gameKey}`).classList.add('bg-brand-purple', 'text-white', 'shadow-sm');
+            document.getElementById(`btn-subgame-${gameKey}`).classList.remove('text-slate-600', 'hover:bg-slate-100');
+        }
+
+        // Game 1: Listening Logic
+        function playListeningAudio() {
+            playSpeech("Hello. My brother is Dian. He is fourteen years old. He loves playing chess.");
+        }
+
+        function answerListening(optionNum, btnElement) {
+            const feedback = document.getElementById('listening-feedback');
+            
+            document.querySelectorAll('.listening-option').forEach(btn => {
+                btn.classList.remove('border-emerald-500', 'bg-emerald-50/20', 'border-red-500', 'bg-red-50/20');
+            });
+
+            if (optionNum === 2) {
+                btnElement.classList.add('border-emerald-500', 'bg-emerald-50/20');
+                feedback.innerText = "⭐ Correct! The speaker is talking about her brother, Dian, who enjoys playing chess.";
+                feedback.className = "p-3.5 rounded-xl text-center font-bold text-xs bg-emerald-100 text-emerald-800 block";
+                if (!studentProfile.lessonsCompleted.listening) {
+                    studentProfile.lessonsCompleted.listening = true;
+                    studentProfile.exp += 40;
+                    completeLessonStep(70);
+                }
+            } else {
+                btnElement.classList.add('border-red-500', 'bg-red-50/20');
+                feedback.innerText = "❌ Incorrect Analysis. Pay attention to the subject pronoun. 'My brother Dian... He lives...' means someone else is talking.";
+                feedback.className = "p-3.5 rounded-xl text-center font-bold text-xs bg-red-100 text-red-800 block";
+            }
+        }
+
+        // Game 2: Jumbled Sentence Logic
+        function initJumbled() {
+            const sourceContainer = document.getElementById('jumbled-word-source');
+            sourceContainer.innerHTML = '';
+            jumbledUserSelected = [];
+            document.getElementById('jumbled-word-target').innerHTML = '';
+            document.getElementById('jumbled-feedback').classList.add('hidden');
+
+            let shuffled = [...targetJumbledSentence].sort(() => Math.random() - 0.5);
+            shuffled.forEach((word) => {
+                let btn = document.createElement('button');
+                btn.innerText = word;
+                btn.className = "bg-white text-slate-700 font-bold px-3.5 py-2 rounded-xl text-xs hover:border-brand-purple transition-all shadow-sm border border-orange-200";
+                btn.onclick = () => selectJumbledWord(btn, word);
+                sourceContainer.appendChild(btn);
+            });
+        }
+
+        function selectJumbledWord(btn, word) {
+            btn.classList.add('opacity-30', 'pointer-events-none');
+            
+            jumbledUserSelected.push({ word: word, sourceBtn: btn });
+            
+            let targetContainer = document.getElementById('jumbled-word-target');
+            let item = document.createElement('span');
+            item.innerText = word;
+            item.className = "bg-brand-purple text-white font-bold px-3 py-1.5 rounded-lg text-xs animate-bounce cursor-pointer shadow-md";
+            item.onclick = () => removeJumbledWord(item, word, btn);
+            targetContainer.appendChild(item);
+        }
+
+        function removeJumbledWord(element, word, originalBtn) {
+            element.remove();
+            originalBtn.classList.remove('opacity-30', 'pointer-events-none');
+            jumbledUserSelected = jumbledUserSelected.filter(item => item.word !== word || item.sourceBtn !== originalBtn);
+        }
+
+        function resetJumbled() {
+            initJumbled();
+        }
+
+        function checkJumbledAnswer() {
+            const feedback = document.getElementById('jumbled-feedback');
+            const sequenceStr = jumbledUserSelected.map(i => i.word).join(" ");
+            const correctStr = targetJumbledSentence.join(" ");
+
+            feedback.classList.remove('hidden');
+            if (sequenceStr === correctStr) {
+                feedback.innerText = "⭐ Excellent logic! You correctly built: '" + correctStr + "'";
+                feedback.className = "p-3.5 rounded-xl text-center font-bold text-xs bg-emerald-100 text-emerald-800 block";
+                if (!studentProfile.lessonsCompleted.jumbled) {
+                    studentProfile.lessonsCompleted.jumbled = true;
+                    studentProfile.exp += 50;
+                    completeLessonStep(75);
+                }
+            } else {
+                feedback.innerText = "❌ Syntax pattern incorrect. Keep thinking! Tips: Greetings go first, then the command verb.";
+                feedback.className = "p-3.5 rounded-xl text-center font-bold text-xs bg-red-100 text-red-800 block";
+            }
+        }
+
+        // Game 3: HOTS Multiple Choice Logic
+        function loadHotsQuestion() {
+            const qObj = hotsQuestions[currentHotsIndex];
+            document.getElementById('hots-q-num').innerText = currentHotsIndex + 1;
+            document.getElementById('hots-q-text').innerText = qObj.q;
+
+            const optContainer = document.getElementById('hots-options-container');
+            optContainer.innerHTML = '';
+            document.getElementById('hots-feedback').classList.add('hidden');
+            document.getElementById('btn-next-hots').disabled = true;
+            document.getElementById('btn-next-hots').className = "bg-white/20 text-white/50 font-bold py-2 px-5 rounded-xl text-xs transition-all";
+
+            qObj.options.forEach((opt, index) => {
+                let btn = document.createElement('button');
+                btn.className = "hots-opt text-left p-3.5 rounded-2xl border border-white/20 bg-white/10 text-xs font-semibold hover:bg-white/20 transition-all flex items-start gap-2 text-white";
+                btn.innerHTML = `<span class="bg-yellow-300 text-slate-900 w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0">${String.fromCharCode(65 + index)}</span> <span>${opt}</span>`;
+                btn.onclick = () => submitHotsAnswer(index, btn);
+                optContainer.appendChild(btn);
+            });
+        }
+
+        function submitHotsAnswer(selIndex, btnElement) {
+            const qObj = hotsQuestions[currentHotsIndex];
+            const feedback = document.getElementById('hots-feedback');
+
+            document.querySelectorAll('.hots-opt').forEach(btn => {
+                btn.classList.add('pointer-events-none');
+            });
+
+            feedback.classList.remove('hidden');
+            if (selIndex === qObj.correct) {
+                btnElement.classList.add('border-emerald-400', 'bg-emerald-500/20');
+                feedback.innerHTML = `⭐ Correct! <p class="font-medium text-slate-100 mt-1">${qObj.explanation}</p>`;
+                feedback.className = "p-3.5 rounded-xl text-left text-xs bg-emerald-600 text-white block space-y-1";
+                studentProfile.exp += 20; 
+                hotsCorrectCount++; // Increment count for grading
+                updateProgressUI();
+            } else {
+                btnElement.classList.add('border-red-400', 'bg-red-500/20');
+                feedback.innerHTML = `❌ Incorrect Analysis. <p class="font-medium text-slate-100 mt-1">Hint: ${qObj.explanation}</p>`;
+                feedback.className = "p-3.5 rounded-xl text-left text-xs bg-red-600 text-white block space-y-1";
+            }
+
+            const nextBtn = document.getElementById('btn-next-hots');
+            nextBtn.disabled = false;
+            nextBtn.className = "bg-white text-teal-800 font-extrabold py-2 px-5 rounded-xl text-xs transition-all cursor-pointer shadow-md";
+        }
+
+        function nextHotsQuestion() {
+            if (currentHotsIndex < hotsQuestions.length - 1) {
+                currentHotsIndex++;
+                loadHotsQuestion();
+            } else {
+                alertNoPopup("HOTS quiz completed! Excellent brain exercises.");
+                studentProfile.lessonsCompleted.hots = true;
+                completeLessonStep(80);
+            }
+        }
+
+        // Game 4: Word Search Puzzle Logic
+        let foundWords = { HE: false, NAME: false, HOBBY: false, GREET: false };
+        let currentSelectedWord = "";
+
+        function initWordPuzzle() {
+            const container = document.getElementById('word-puzzle-grid');
+            container.innerHTML = '';
+            puzzleSelectedCoordinates = [];
+            currentSelectedWord = "";
+            document.getElementById('puzzle-selection-display').innerText = "...";
+
+            for (let r = 0; r < 6; r++) {
+                for (let c = 0; c < 6; c++) {
+                    let letter = puzzleGridData[r][c];
+                    let btn = document.createElement('button');
+                    btn.innerText = letter;
+                    btn.className = "w-10 h-10 rounded-lg bg-white/10 border border-white/20 text-xs font-extrabold flex items-center justify-center hover:bg-white/20 transition-all text-white focus:outline-none";
+                    btn.onclick = () => toggleWordBlock(btn, r, c, letter);
+                    container.appendChild(btn);
+                }
+            }
+        }
+
+        function toggleWordBlock(btn, r, c, letter) {
+            const index = puzzleSelectedCoordinates.findIndex(coord => coord.r === r && coord.c === c);
+            if (index > -1) {
+                btn.classList.remove('bg-yellow-400', 'text-slate-900');
+                btn.classList.add('bg-white/10', 'text-white');
+                puzzleSelectedCoordinates.splice(index, 1);
+            } else {
+                btn.classList.add('bg-yellow-400', 'text-slate-900');
+                btn.classList.remove('bg-white/10', 'text-white');
+                puzzleSelectedCoordinates.push({ r: r, c: c, letter: letter });
+            }
+
+            currentSelectedWord = puzzleSelectedCoordinates.map(coord => coord.letter).join("");
+            document.getElementById('puzzle-selection-display').innerText = currentSelectedWord;
+        }
+
+        function clearWordSelection() {
+            initWordPuzzle();
+        }
+
+        function submitWordSelection() {
+            const word = currentSelectedWord.toUpperCase();
+            if (foundWords.hasOwnProperty(word)) {
+                foundWords[word] = true;
+                const targetEl = document.getElementById(`word-target-${word}`);
+                targetEl.className = "bg-emerald-500 p-2.5 rounded-xl border border-white/30 flex justify-between items-center text-xs font-bold text-white shadow-md";
+                targetEl.innerHTML = `<span>${word} (Found!)</span> <span><i class="fa-solid fa-circle-check text-yellow-300"></i></span>`;
+                
+                studentProfile.exp += 30;
+                updateProgressUI();
+
+                if (Object.values(foundWords).every(v => v === true)) {
+                    studentProfile.lessonsCompleted.wordpuzzle = true;
+                    completeLessonStep(85);
+                    alertNoPopup("🌟 Congratulations! You solved the interactive word finder completely!");
+                }
+                initWordPuzzle();
+            } else {
+                alertNoPopup("That combination doesn't match our hidden key targets. Try again!");
+                initWordPuzzle();
+            }
+        }
+
+        // GAME 5: CROSSWORD PUZZLE CORE LOGIC (11 QUESTIONS)
+        function initCrossword() {
+            const container = document.getElementById('crossword-grid-container');
+            container.innerHTML = '';
+            
+            // Grid size: 14 Rows (0..13) x 12 Columns (0..11)
+            for (let r = 0; r < 14; r++) {
+                for (let c = 0; c < 12; c++) {
+                    const coordKey = `${r},${c}`;
+                    const cellWrapper = document.createElement('div');
+                    cellWrapper.className = "relative aspect-square w-full min-w-[24px] max-w-[34px] rounded-lg";
+                    
+                    if (crosswordAnswers.hasOwnProperty(coordKey)) {
+                        // Correct playable cell
+                        cellWrapper.className += " bg-white border border-slate-300 shadow-inner p-0.5";
+                        
+                        // Small number helper
+                        if (crosswordNumbers.hasOwnProperty(coordKey)) {
+                            const numLabel = document.createElement('span');
+                            numLabel.innerText = crosswordNumbers[coordKey];
+                            numLabel.className = "absolute top-0.5 left-0.5 text-[8px] font-extrabold text-brand-purple leading-none z-10 pointer-events-none";
+                            cellWrapper.appendChild(numLabel);
+                        }
+                        
+                        // Input Box element
+                        const inputEl = document.createElement('input');
+                        inputEl.type = "text";
+                        inputEl.maxLength = 1;
+                        inputEl.dataset.row = r;
+                        inputEl.dataset.col = c;
+                        inputEl.id = `cw-cell-${r}-${c}`;
+                        inputEl.className = "w-full h-full text-center text-xs md:text-sm font-extrabold text-slate-800 focus:outline-none focus:bg-orange-50 uppercase bg-transparent p-0 select-all rounded-md";
+                        
+                        // Automatic cursor navigation helper
+                        inputEl.oninput = (e) => handleCrosswordNavigation(e, r, c);
+                        
+                        cellWrapper.appendChild(inputEl);
+                    } else {
+                        // Dark solid cell (unplayable)
+                        cellWrapper.className += " bg-slate-900/60 shadow-inner";
+                    }
+                    container.appendChild(cellWrapper);
+                }
+            }
+
+            // Populate Clues list in UI
+            populateCrosswordClues();
+        }
+
+        // Automatic focus routing to make typing fluid
+        function handleCrosswordNavigation(e, r, c) {
+            const val = e.target.value.toUpperCase();
+            e.target.value = val; // Force uppercase representation
+            
+            if (val !== "") {
+                // Try looking for the next playable grid node horizontally first
+                let nextCol = c + 1;
+                let foundNext = document.getElementById(`cw-cell-${r}-${nextCol}`);
+                if (foundNext) {
+                    foundNext.focus();
+                } else {
+                    // Otherwise check vertically down
+                    let nextRow = r + 1;
+                    let foundDown = document.getElementById(`cw-cell-${nextRow}-${c}`);
+                    if (foundDown) foundDown.focus();
+                }
+            }
+        }
+
+        function populateCrosswordClues() {
+            const acrossContainer = document.getElementById('crossword-clues-across');
+            const downContainer = document.getElementById('crossword-clues-down');
+            
+            acrossContainer.innerHTML = '';
+            downContainer.innerHTML = '';
+
+            crosswordClues.across.forEach(clue => {
+                const item = document.createElement('div');
+                item.className = "bg-white/10 hover:bg-white/20 p-2.5 rounded-xl border border-white/5 text-xs flex items-start gap-2.5 transition-all text-white font-medium";
+                item.innerHTML = `<span class="bg-yellow-400 text-slate-900 font-extrabold w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px]">${clue.num}</span> <span>${clue.text}</span>`;
+                acrossContainer.appendChild(item);
+            });
+
+            crosswordClues.down.forEach(clue => {
+                const item = document.createElement('div');
+                item.className = "bg-white/10 hover:bg-white/20 p-2.5 rounded-xl border border-white/5 text-xs flex items-start gap-2.5 transition-all text-white font-medium";
+                item.innerHTML = `<span class="bg-teal-400 text-slate-900 font-extrabold w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px]">${clue.num}</span> <span>${clue.text}</span>`;
+                downContainer.appendChild(item);
+            });
+        }
+
+        // Crossword validation checker
+        function checkCrosswordAnswers() {
+            const feedback = document.getElementById('crossword-feedback');
+            feedback.classList.remove('hidden');
+            
+            let allCorrect = true;
+            let cellsFilled = 0;
+            let correctCellsCount = 0;
+            const totalPlayableCells = Object.keys(crosswordAnswers).length;
+
+            for (const coordKey in crosswordAnswers) {
+                const [r, c] = coordKey.split(',');
+                const inputEl = document.getElementById(`cw-cell-${r}-${c}`);
+                if (inputEl) {
+                    const userVal = inputEl.value.trim().toUpperCase();
+                    if (userVal !== "") {
+                        cellsFilled++;
+                        if (userVal === crosswordAnswers[coordKey]) {
+                            correctCellsCount++;
+                            // Style valid cell
+                            inputEl.classList.remove('text-red-600', 'bg-red-50');
+                            inputEl.classList.add('text-emerald-700', 'bg-emerald-50');
+                        } else {
+                            allCorrect = false;
+                            inputEl.classList.remove('text-emerald-700', 'bg-emerald-50');
+                            inputEl.classList.add('text-red-600', 'bg-red-50');
+                        }
+                    } else {
+                        allCorrect = false;
+                        inputEl.classList.remove('text-emerald-700', 'bg-emerald-50', 'text-red-600', 'bg-red-50');
+                    }
+                }
+            }
+
+            if (correctCellsCount === totalPlayableCells) {
+                feedback.innerText = "🏆 Incredible work! You solved the entire Grade 7 Crossword perfectly (+60 XP)!";
+                feedback.className = "mt-3 p-3 rounded-xl text-center font-bold text-xs bg-emerald-500 text-white block shadow-md animate-bounce";
+                
+                if (!studentProfile.lessonsCompleted.crossword) {
+                    studentProfile.lessonsCompleted.crossword = true;
+                    studentProfile.exp += 60;
+                    completeLessonStep(88);
+                }
+            } else if (cellsFilled === 0) {
+                feedback.innerText = "⚠️ The grid is currently empty! Click inside the white cells and type your answers first.";
+                feedback.className = "mt-3 p-3 rounded-xl text-center font-bold text-xs bg-amber-400 text-slate-950 block";
+            } else {
+                feedback.innerHTML = `🔍 Keep trying! You got <strong>${correctCellsCount}</strong> out of <strong>${totalPlayableCells}</strong> letter blocks correct. Wrong letters are highlighted in red.`;
+                feedback.className = "mt-3 p-3 rounded-xl text-center font-bold text-xs bg-orange-100 text-orange-800 block border border-orange-200";
+            }
+        }
+
+        // Reset all grid contents
+        function resetCrosswordGrid() {
+            for (const coordKey in crosswordAnswers) {
+                const [r, c] = coordKey.split(',');
+                const inputEl = document.getElementById(`cw-cell-${r}-${c}`);
+                if (inputEl) {
+                    inputEl.value = "";
+                    inputEl.className = "w-full h-full text-center text-xs md:text-sm font-extrabold text-slate-800 focus:outline-none focus:bg-orange-50 uppercase bg-transparent p-0 select-all rounded-md";
+                }
+            }
+            const feedback = document.getElementById('crossword-feedback');
+            feedback.classList.add('hidden');
+        }
+
+        // Automated cheats solver block for presentation/development ease
+        function revealCrosswordSolutions() {
+            for (const coordKey in crosswordAnswers) {
+                const [r, c] = coordKey.split(',');
+                const inputEl = document.getElementById(`cw-cell-${r}-${c}`);
+                if (inputEl) {
+                    inputEl.value = crosswordAnswers[coordKey];
+                    inputEl.className = "w-full h-full text-center text-xs md:text-sm font-extrabold text-emerald-700 bg-emerald-50 focus:outline-none uppercase p-0 select-all rounded-md";
+                }
+            }
+            const feedback = document.getElementById('crossword-feedback');
+            feedback.innerText = "⭐ Crossword solutions revealed! Study how the grammar and vocabulary keywords intersect.";
+            feedback.className = "mt-3 p-3 rounded-xl text-center font-bold text-xs bg-yellow-400 text-slate-900 block shadow-md";
+            feedback.classList.remove('hidden');
+        }
+
+        // Literacy: Reading Comprehension Logic
+        function verifyReadingAnswer(optionIndex, btnElement) {
+            const feedback = document.getElementById('reading-feedback');
+            
+            document.querySelectorAll('.reading-opt').forEach(btn => {
+                btn.classList.remove('border-emerald-400', 'bg-emerald-500/20', 'border-red-400', 'bg-red-500/20');
+            });
+
+            if (optionIndex === 3) {
+                btnElement.classList.add('border-emerald-400', 'bg-emerald-500/20');
+                feedback.innerText = "⭐ Perfect Reading Analysis! Origami is indeed a paper-folding craft rooted in Japanese heritage.";
+                feedback.className = "p-3 rounded-xl text-center font-bold text-xs bg-emerald-500 text-white block shadow-md";
+                
+                if (!studentProfile.lessonsCompleted.reading) {
+                    studentProfile.lessonsCompleted.reading = true;
+                    studentProfile.exp += 40;
+                    completeLessonStep(90);
+                }
+            } else {
+                btnElement.classList.add('border-red-400', 'bg-red-50/20');
+                feedback.innerText = "❌ That details doesn't match the pen-pal letter. Review Kenji's sentences!";
+                feedback.className = "p-3 rounded-xl text-center font-bold text-xs bg-red-500 text-white block shadow-md";
+            }
+        }
+
+        // Writing: Proclamation Builder Assistant
+        function proclaimGuildHero() {
+            const name = document.getElementById('hero-name').value || "Bagas the Brave";
+            const age = document.getElementById('hero-age').value || "13";
+            const origin = document.getElementById('hero-origin').value || "Yogyakarta";
+            const hobby = document.getElementById('hero-hobby').value || "crafting digital games";
+
+            const generated = `"Hear ye, Guildmaster! I am ${name}. I am ${age} cycles old. I come from the city of ${origin}. My special skill is ${hobby}. I seek to join your legendary guild!"`;
+            document.getElementById('proclamation-preview').innerText = generated;
+        }
+
+        // Essay Evaluator (Analytical Literacy Assessment)
+        function evaluateEssay() {
+            const essayText = document.getElementById('essay-input-area').value.trim();
+            const words = essayText.split(/\s+/).filter(word => word.length > 0);
+            
+            if (words.length < 15) {
+                alertNoPopup("Please write at least 15 words to showcase proper analytical English paragraph writing!");
+                return;
+            }
+
+            const resultCard = document.getElementById('essay-result-card');
+            const evalLength = document.getElementById('eval-length');
+            const scoreBadge = document.getElementById('essay-score-badge');
+
+            resultCard.classList.remove('hidden');
+            evalLength.innerText = `Sufficient! Checked: ${words.length} English words.`;
+
+            if (words.length >= 25) {
+                scoreBadge.innerText = "Legendary Explorer (Guild Elite A+)";
+                scoreBadge.className = "bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase";
+                studentProfile.exp += 50;
+            } else {
+                scoreBadge.innerText = "Novice Apprentice (B)";
+                scoreBadge.className = "bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase";
+                studentProfile.exp += 30;
+            }
+
+            studentProfile.lessonsCompleted.essay = true;
+            completeLessonStep(100);
+            updateProgressUI();
+            
+            playSpeech("Excellent essay submitted! Your vocabulary logic has been verified successfully by the guildmaster.");
+        }
+
+        // Customized Alert Replacement Modal
+        function alertNoPopup(msgText) {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-5 right-5 bg-slate-900 text-white font-semibold p-4 rounded-2xl shadow-xl z-50 text-xs border border-teal-500 animate-bounce max-w-sm";
+            toast.innerHTML = `<p class="flex items-center gap-2">⭐ ${msgText}</p>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 4000);
+        }
+
+        function calculateFinalAcademicScore() {
+            let score = 0;
+            
+            // 1. HOTS Questions: 5 questions * 10 points = max 50 points
+            score += (hotsCorrectCount * 10);
+            
+            // 2. Crossword solved: 15 points
+            if (studentProfile.lessonsCompleted.crossword) {
+                score += 15;
+            }
+            
+            // 3. Jumbled sentence solved: 15 points
+            if (studentProfile.lessonsCompleted.jumbled) {
+                score += 15;
+            }
+            
+            // 4. Reading Comprehension correct: 10 points
+            if (studentProfile.lessonsCompleted.reading) {
+                score += 10;
+            }
+            
+            // 5. Listening Comprehension solved: 10 points
+            if (studentProfile.lessonsCompleted.listening) {
+                score += 10;
+            }
+            
+            return Math.min(score, 100);
+        }
+
+        // Report & Certificate Generation with KKM Validation
+        function triggerReportCard() {
+            const finalScore = calculateFinalAcademicScore();
+            const passKkm = finalScore >= 75;
+
+            // Update Certificate metadata
+            document.getElementById('cert-student-name').innerText = studentProfile.name;
+            document.getElementById('cert-final-score').innerText = `${finalScore} / 100`;
+            
+            // Set dynamic issue date
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            document.getElementById('cert-issue-date').innerText = dateStr;
+
+            const remedialContainer = document.getElementById('remedial-container');
+            const certContainer = document.getElementById('certificate-unlocked-container');
+
+            if (passKkm) {
+                // Passed KKM (>= 75)
+                remedialContainer.classList.add('hidden');
+                certContainer.classList.remove('hidden');
+            } else {
+                // Under KKM (< 75)
+                document.getElementById('remedial-current-score').innerText = finalScore;
+                remedialContainer.classList.remove('hidden');
+                certContainer.classList.add('hidden');
+            }
+
+            switchTab('report');
+        }
+    </script>
+</body>
+</html>
